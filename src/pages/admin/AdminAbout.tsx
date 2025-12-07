@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { infoAPI } from "@/lib/api";
+import { showErrorToast, showSuccessToast } from "@/lib/error-handler";
 import type { Info, InfoDTO } from "@/types";
 import { Plus, Edit, Trash2 } from "lucide-react";
 
@@ -106,13 +107,10 @@ export function AdminAbout() {
 
       await fetchInfos();
       handleCloseDialog();
+      showSuccessToast(selectedInfo ? "Cập nhật thông tin thành công" : "Tạo thông tin thành công");
     } catch (error) {
       console.error("Failed to save info:", error);
-      const message =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: string } }).response?.data
-          : undefined;
-      alert(message || "Có lỗi xảy ra khi lưu thông tin");
+      showErrorToast(error, "Có lỗi xảy ra khi lưu thông tin");
     } finally {
       setIsSubmitting(false);
     }
@@ -126,13 +124,10 @@ export function AdminAbout() {
       await fetchInfos();
       setIsDeleteDialogOpen(false);
       setSelectedInfo(null);
+      showSuccessToast("Xóa thông tin thành công");
     } catch (error) {
       console.error("Failed to delete info:", error);
-      const message =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: string } }).response?.data
-          : undefined;
-      alert(message || "Có lỗi xảy ra khi xóa thông tin");
+      showErrorToast(error, "Có lỗi xảy ra khi xóa thông tin");
     }
   };
 

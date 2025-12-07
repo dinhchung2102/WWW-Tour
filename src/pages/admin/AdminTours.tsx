@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { tourAPI } from "@/lib/api";
+import { showErrorToast, showSuccessToast } from "@/lib/error-handler";
 import type { Tour, TourDTO } from "@/types";
 import { Plus, Edit, Trash2 } from "lucide-react";
 
@@ -125,13 +126,10 @@ export function AdminTours() {
 
       await fetchTours();
       handleCloseDialog();
+      showSuccessToast(selectedTour ? "Cập nhật tour thành công" : "Tạo tour thành công");
     } catch (error) {
       console.error("Failed to save tour:", error);
-      const message =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: string } }).response?.data
-          : undefined;
-      alert(message || "Có lỗi xảy ra khi lưu tour");
+      showErrorToast(error, "Có lỗi xảy ra khi lưu tour");
     } finally {
       setIsSubmitting(false);
     }
@@ -145,13 +143,10 @@ export function AdminTours() {
       await fetchTours();
       setIsDeleteDialogOpen(false);
       setSelectedTour(null);
+      showSuccessToast("Xóa tour thành công");
     } catch (error) {
       console.error("Failed to delete tour:", error);
-      const message =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: string } }).response?.data
-          : undefined;
-      alert(message || "Có lỗi xảy ra khi xóa tour");
+      showErrorToast(error, "Có lỗi xảy ra khi xóa tour");
     }
   };
 

@@ -4,10 +4,19 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,16 +26,33 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useAuthStore } from "@/store/authStore";
-import { LogIn, LogOut } from "lucide-react";
+import { authAPI } from "@/lib/api";
+import {
+  showErrorToast,
+  showSuccessToast,
+  getErrorMessage,
+} from "@/lib/error-handler";
+import { LogOut, Settings } from "lucide-react";
 
 export function AppBar() {
   const navigate = useNavigate();
   const { user, isAuthenticated, login, logout, fetchProfile } = useAuthStore();
   const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Register form state
+  const [registerData, setRegisterData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerError, setRegisterError] = useState("");
 
   useEffect(() => {
     if (isAuthenticated && !user) {
@@ -34,8 +60,10 @@ export function AppBar() {
     }
   }, [isAuthenticated, user, fetchProfile]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     setError("");
     setLoading(true);
 
@@ -44,8 +72,11 @@ export function AppBar() {
       setLoginOpen(false);
       setEmail("");
       setPassword("");
-    } catch (err: any) {
-      setError(err.response?.data || "Đăng nhập thất bại");
+      showSuccessToast("Đăng nhập thành công");
+    } catch (err) {
+      const message = getErrorMessage(err) || "Đăng nhập thất bại";
+      setError(message);
+      showErrorToast(err, "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
@@ -54,6 +85,29 @@ export function AppBar() {
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegisterError("");
+    setRegisterLoading(true);
+
+    try {
+      await authAPI.register({
+        ...registerData,
+        role: "CUSTOMER",
+      });
+      setRegisterOpen(false);
+      setRegisterData({ name: "", email: "", password: "", phone: "" });
+      setLoginOpen(true);
+      showSuccessToast("Đăng ký thành công! Vui lòng đăng nhập");
+    } catch (err) {
+      const message = getErrorMessage(err) || "Đăng ký thất bại";
+      setRegisterError(message);
+      showErrorToast(err, "Đăng ký thất bại");
+    } finally {
+      setRegisterLoading(false);
+    }
   };
 
   const getInitials = (name: string) => {
@@ -102,77 +156,320 @@ export function AppBar() {
 
           <div className="flex items-center gap-4">
             {isAuthenticated && user ? (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <Avatar>
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:inline">{user.name}</span>
+              <>
+                {user.role === "ADMIN" && (
+                  <Button variant="outline" asChild>
+                    <Link to="/admin">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Quản lý
+                    </Link>
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-56" align="end">
-                  <div className="flex flex-col gap-2">
-                    <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Đăng xuất
+                )}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                      <Avatar>
+                        <AvatarFallback>
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden sm:inline">{user.name}</span>
                     </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56" align="end">
+                    <div className="flex flex-col gap-2">
+                      <div className="px-2 py-1.5">
+                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="justify-start"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Đăng xuất
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </>
             ) : (
-              <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Đăng nhập
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Đăng nhập</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="email@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Mật khẩu</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    {error && (
-                      <p className="text-sm text-destructive">{error}</p>
-                    )}
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+              <>
+                <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+                  <DialogTrigger asChild>
+                    <Button>Đăng nhập</Button>
+                  </DialogTrigger>
+                  <DialogContent className="p-0 w-[400px]">
+                    <DialogTitle className="sr-only">
+                      Đăng nhập tài khoản
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                      Nhập email và mật khẩu để đăng nhập
+                    </DialogDescription>
+                    <Card className="w-full border-0 shadow-none ">
+                      <CardHeader>
+                        <CardTitle>Đăng nhập tài khoản</CardTitle>
+                        <CardDescription>
+                          Nhập email và mật khẩu để đăng nhập
+                        </CardDescription>
+                        <CardAction>
+                          <Button
+                            variant="link"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setLoginOpen(false);
+                              setRegisterOpen(true);
+                            }}
+                          >
+                            Đăng ký
+                          </Button>
+                        </CardAction>
+                      </CardHeader>
+                      <CardContent>
+                        <form onSubmit={handleLogin} id="login-form">
+                          <div className="flex flex-col gap-6">
+                            {error && (
+                              <p className="text-sm text-destructive">
+                                {error}
+                              </p>
+                            )}
+                            <div className="grid gap-2">
+                              <Label htmlFor="email">Email</Label>
+                              <Input
+                                id="email"
+                                type="email"
+                                placeholder="m@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <div className="flex items-center">
+                                <Label htmlFor="password">Mật khẩu</Label>
+                                <a
+                                  href="#"
+                                  className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                                  onClick={(e) => e.preventDefault()}
+                                >
+                                  Quên mật khẩu?
+                                </a>
+                              </div>
+                              <Input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                              />
+                            </div>
+                          </div>
+                        </form>
+                      </CardContent>
+                      <CardFooter className="flex-col gap-2">
+                        <Button
+                          type="submit"
+                          form="login-form"
+                          className="w-full"
+                          disabled={loading}
+                        >
+                          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            window.location.href = `${
+                              import.meta.env.VITE_API_URL ||
+                              "http://localhost:8080"
+                            }/customer/auth/login/google`;
+                          }}
+                        >
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                              fill="#4285F4"
+                            />
+                            <path
+                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                              fill="#34A853"
+                            />
+                            <path
+                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                              fill="#FBBC05"
+                            />
+                            <path
+                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                              fill="#EA4335"
+                            />
+                          </svg>
+                          Đăng nhập với Google
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Register Dialog */}
+                <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
+                  <DialogContent className="p-0 sm:max-w-sm">
+                    <DialogTitle className="sr-only">
+                      Đăng ký tài khoản
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                      Tạo tài khoản mới để bắt đầu trải nghiệm
+                    </DialogDescription>
+                    <Card className="w-full border-0 shadow-none">
+                      <CardHeader>
+                        <CardTitle>Đăng ký tài khoản</CardTitle>
+                        <CardDescription>
+                          Tạo tài khoản mới để bắt đầu trải nghiệm
+                        </CardDescription>
+                        <CardAction>
+                          <Button
+                            variant="link"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setRegisterOpen(false);
+                              setLoginOpen(true);
+                            }}
+                          >
+                            Đăng nhập
+                          </Button>
+                        </CardAction>
+                      </CardHeader>
+                      <CardContent>
+                        <form onSubmit={handleRegister} id="register-form">
+                          <div className="flex flex-col gap-6">
+                            {registerError && (
+                              <p className="text-sm text-destructive">
+                                {registerError}
+                              </p>
+                            )}
+                            <div className="grid gap-2">
+                              <Label htmlFor="register-name">Họ và tên</Label>
+                              <Input
+                                id="register-name"
+                                value={registerData.name}
+                                onChange={(e) =>
+                                  setRegisterData({
+                                    ...registerData,
+                                    name: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="register-email">Email</Label>
+                              <Input
+                                id="register-email"
+                                type="email"
+                                placeholder="m@example.com"
+                                value={registerData.email}
+                                onChange={(e) =>
+                                  setRegisterData({
+                                    ...registerData,
+                                    email: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="register-phone">
+                                Số điện thoại
+                              </Label>
+                              <Input
+                                id="register-phone"
+                                type="tel"
+                                value={registerData.phone}
+                                onChange={(e) =>
+                                  setRegisterData({
+                                    ...registerData,
+                                    phone: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="register-password">
+                                Mật khẩu
+                              </Label>
+                              <Input
+                                id="register-password"
+                                type="password"
+                                value={registerData.password}
+                                onChange={(e) =>
+                                  setRegisterData({
+                                    ...registerData,
+                                    password: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                          </div>
+                        </form>
+                      </CardContent>
+                      <CardFooter className="flex-col gap-2">
+                        <Button
+                          type="submit"
+                          form="register-form"
+                          className="w-full"
+                          disabled={registerLoading}
+                        >
+                          {registerLoading ? "Đang đăng ký..." : "Đăng ký"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            window.location.href = `${
+                              import.meta.env.VITE_API_URL ||
+                              "http://localhost:8080"
+                            }/customer/auth/login/google`;
+                          }}
+                        >
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                              fill="#4285F4"
+                            />
+                            <path
+                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                              fill="#34A853"
+                            />
+                            <path
+                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                              fill="#FBBC05"
+                            />
+                            <path
+                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                              fill="#EA4335"
+                            />
+                          </svg>
+                          Đăng ký với Google
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </DialogContent>
+                </Dialog>
+              </>
             )}
           </div>
         </div>

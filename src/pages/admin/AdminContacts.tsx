@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { contactAPI } from "@/lib/api";
+import { showErrorToast, showSuccessToast } from "@/lib/error-handler";
 import type { Contact } from "@/types";
 import { Trash2, Eye } from "lucide-react";
 
@@ -59,13 +60,10 @@ export function AdminContacts() {
         active: !contact.active,
       });
       await fetchContacts();
+      showSuccessToast("Cập nhật trạng thái thành công");
     } catch (error) {
       console.error("Failed to update contact:", error);
-      const message =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: string } }).response?.data
-          : undefined;
-      alert(message || "Có lỗi xảy ra khi cập nhật");
+      showErrorToast(error, "Có lỗi xảy ra khi cập nhật");
     }
   };
 
@@ -77,13 +75,10 @@ export function AdminContacts() {
       await fetchContacts();
       setIsDeleteDialogOpen(false);
       setSelectedContact(null);
+      showSuccessToast("Xóa liên hệ thành công");
     } catch (error) {
       console.error("Failed to delete contact:", error);
-      const message =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: string } }).response?.data
-          : undefined;
-      alert(message || "Có lỗi xảy ra khi xóa");
+      showErrorToast(error, "Có lỗi xảy ra khi xóa");
     }
   };
 

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { infoAPI, contactAPI } from "@/lib/api";
+import { showErrorToast, showSuccessToast } from "@/lib/error-handler";
 import type { Info } from "@/types";
 import { Mail, Phone, MapPin } from "lucide-react";
 
@@ -47,12 +48,13 @@ export function Contact() {
       });
       setSubmitted(true);
       setFormData({ fullName: "", email: "", phone: "", description: "" });
+      showSuccessToast("Gửi tin nhắn thành công! Chúng tôi sẽ phản hồi sớm nhất có thể.");
       setTimeout(() => {
         setSubmitted(false);
       }, 3000);
     } catch (error) {
       console.error("Failed to submit contact:", error);
-      alert("Có lỗi xảy ra khi gửi thông tin liên hệ");
+      showErrorToast(error, "Có lỗi xảy ra khi gửi thông tin liên hệ");
     } finally {
       setIsSubmitting(false);
     }
