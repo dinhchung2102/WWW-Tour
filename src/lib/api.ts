@@ -58,7 +58,7 @@ export const authAPI = {
 export const tourAPI = {
   getAllTours: async (): Promise<Tour[]> => {
     const response = await api.get("/tours");
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getTourById: async (id: number): Promise<Tour> => {
@@ -68,12 +68,12 @@ export const tourAPI = {
 
   getToursByLocation: async (location: string): Promise<Tour[]> => {
     const response = await api.get(`/tours/location/${location}`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getToursByTitle: async (title: string): Promise<Tour[]> => {
     const response = await api.get(`/tours/title/${title}`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getToursByPriceRange: async (
@@ -83,7 +83,7 @@ export const tourAPI = {
     const response = await api.get(
       `/tours/price?minPrice=${minPrice}&maxPrice=${maxPrice}`
     );
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   createTour: async (data: TourDTO): Promise<Tour> => {
@@ -112,7 +112,7 @@ export const bookingAPI = {
 
   getBookingsByUserId: async (userId: number): Promise<Booking[]> => {
     const response = await api.get(`/booking/user/${userId}`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getBookingById: async (id: number): Promise<Booking> => {
@@ -122,7 +122,7 @@ export const bookingAPI = {
 
   getAllBookings: async (): Promise<Booking[]> => {
     const response = await api.get("/bookings");
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 };
 
@@ -130,19 +130,19 @@ export const bookingAPI = {
 export const infoAPI = {
   getAllInfo: async (): Promise<Info[]> => {
     const response = await api.get("/about/info");
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getOrderedInfo: async (): Promise<Info[]> => {
     const response = await api.get("/about/info/ordered");
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getContactInfo: async (isContactInfo: boolean = true): Promise<Info[]> => {
     const response = await api.get(
       `/about/info/contact?isContactInfo=${isContactInfo}`
     );
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getInfoById: async (id: number): Promise<Info> => {
@@ -169,12 +169,12 @@ export const infoAPI = {
 export const contactAPI = {
   getAllContacts: async (): Promise<Contact[]> => {
     const response = await api.get("/contact");
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getActiveContacts: async (active: boolean = true): Promise<Contact[]> => {
     const response = await api.get(`/contact/active?active=${active}`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getContactById: async (id: number): Promise<Contact> => {

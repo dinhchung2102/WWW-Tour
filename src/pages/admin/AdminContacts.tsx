@@ -45,7 +45,7 @@ export function AdminContacts() {
   const fetchContacts = async () => {
     try {
       const data = await contactAPI.getAllContacts();
-      setContacts(data);
+      setContacts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch contacts:", error);
     } finally {

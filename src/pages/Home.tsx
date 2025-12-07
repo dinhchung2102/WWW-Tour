@@ -30,11 +30,11 @@ export function Home() {
     const fetchTours = async () => {
       try {
         const data = await tourAPI.getAllTours();
-        setTours(data.slice(0, 6));
+        const allTours = Array.isArray(data) ? data : [];
+        setTours(allTours.slice(0, 6));
 
         // Temporary: Split tours into domestic and international
         // TODO: Update when API has location type field
-        const allTours = data;
         const midPoint = Math.ceil(allTours.length / 2);
         setDomesticTours(allTours.slice(0, midPoint).slice(0, 6));
         setInternationalTours(allTours.slice(midPoint).slice(0, 6));

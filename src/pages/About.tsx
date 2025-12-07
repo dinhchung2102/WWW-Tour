@@ -13,7 +13,8 @@ export function About() {
         // Get ordered info (excluding contact info)
         const data = await infoAPI.getOrderedInfo();
         // Filter out contact info
-        const aboutInfos = data.filter((info) => !info.isContactInfo);
+        const dataArray = Array.isArray(data) ? data : [];
+        const aboutInfos = dataArray.filter((info) => !info.isContactInfo);
         setInfos(aboutInfos);
       } catch (error) {
         console.error("Failed to fetch about info:", error);

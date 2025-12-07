@@ -19,8 +19,8 @@ export function AdminBookings() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const data = await bookingAPI.getAllBookings();
-        setBookings(data);
+      const data = await bookingAPI.getAllBookings();
+      setBookings(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch bookings:", error);
       } finally {

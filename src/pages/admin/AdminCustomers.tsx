@@ -30,7 +30,7 @@ export function AdminCustomers() {
         );
         if (response.ok) {
           const data = await response.json();
-          setCustomers(data);
+          setCustomers(Array.isArray(data) ? data : []);
         }
       } catch (error) {
         console.error("Failed to fetch customers:", error);

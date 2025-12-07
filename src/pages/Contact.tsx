@@ -24,7 +24,7 @@ export function Contact() {
     const fetchContactInfo = async () => {
       try {
         const data = await infoAPI.getContactInfo(true);
-        setContactInfos(data);
+        setContactInfos(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch contact info:", error);
       } finally {

@@ -16,8 +16,9 @@ export function Tours() {
     const fetchTours = async () => {
       try {
         const data = await tourAPI.getAllTours();
-        setTours(data);
-        setFilteredTours(data);
+        const toursArray = Array.isArray(data) ? data : [];
+        setTours(toursArray);
+        setFilteredTours(toursArray);
       } catch (error) {
         console.error("Failed to fetch tours:", error);
       } finally {

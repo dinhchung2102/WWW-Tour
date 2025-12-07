@@ -55,7 +55,7 @@ export function AdminAbout() {
   const fetchInfos = async () => {
     try {
       const data = await infoAPI.getAllInfo();
-      setInfos(data);
+      setInfos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch infos:", error);
     } finally {

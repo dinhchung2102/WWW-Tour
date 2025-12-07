@@ -58,7 +58,7 @@ export function AdminTours() {
   const fetchTours = async () => {
     try {
       const data = await tourAPI.getAllTours();
-      setTours(data);
+      setTours(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch tours:", error);
     } finally {
