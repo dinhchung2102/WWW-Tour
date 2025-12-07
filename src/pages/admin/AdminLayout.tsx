@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
@@ -97,11 +97,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <p className="text-sm font-medium">{user?.name}</p>
             <p className="text-xs text-muted-foreground">{user?.email}</p>
           </div>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleLogout}
-          >
+          <Button variant="outline" className="w-full" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Đăng xuất
           </Button>
@@ -115,4 +111,3 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     </div>
   );
 }
-

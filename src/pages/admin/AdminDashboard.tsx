@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { tourAPI, bookingAPI } from "@/lib/api";
-import type { Tour, Booking } from "@/types";
 import { Package, Users, Calendar, TrendingUp } from "lucide-react";
 
 export function AdminDashboard() {
@@ -111,11 +110,12 @@ export function AdminDashboard() {
             <div className="text-2xl font-bold">
               {formatPrice(stats.totalRevenue)}
             </div>
-            <p className="text-xs text-muted-foreground">Từ booking đã xác nhận</p>
+            <p className="text-xs text-muted-foreground">
+              Từ booking đã xác nhận
+            </p>
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-
