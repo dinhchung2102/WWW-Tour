@@ -6,12 +6,11 @@ import type {
   Customer,
   Tour,
   Booking,
+  TourDTO,
 } from "@/types";
 
-const API_BASE_URL = "http://localhost:8080";
-
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${import.meta.env.VITE_API_URL}`,
   headers: {
     "Content-Type": "application/json",
   },
@@ -82,6 +81,20 @@ export const tourAPI = {
     );
     return response.data;
   },
+
+  createTour: async (data: TourDTO): Promise<Tour> => {
+    const response = await api.post("/tour", data);
+    return response.data;
+  },
+
+  updateTour: async (data: Tour): Promise<Tour> => {
+    const response = await api.put("/tour", data);
+    return response.data;
+  },
+
+  deleteTour: async (id: number): Promise<void> => {
+    await api.delete(`/tour/${id}`);
+  },
 };
 
 // Booking API
@@ -100,6 +113,11 @@ export const bookingAPI = {
 
   getBookingById: async (id: number): Promise<Booking> => {
     const response = await api.get(`/booking/${id}`);
+    return response.data;
+  },
+
+  getAllBookings: async (): Promise<Booking[]> => {
+    const response = await api.get("/bookings");
     return response.data;
   },
 };

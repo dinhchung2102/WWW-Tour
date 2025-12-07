@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TourCard } from "@/components/tour/tour-card";
 import { tourAPI } from "@/lib/api";
 import type { Tour } from "@/types";
-import { MapPin, Calendar, Users, Search, ArrowRight } from "lucide-react";
+import { Search } from "lucide-react";
 
 export function Tours() {
   const [tours, setTours] = useState<Tour[]>([]);
@@ -43,12 +42,6 @@ export function Tours() {
     }
   }, [searchTerm, tours]);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
 
   return (
     <div className="py-12">
@@ -94,54 +87,7 @@ export function Tours() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTours.map((tour) => (
-              <Card key={tour.id_tour} className="overflow-hidden">
-                <div className="aspect-video bg-muted relative">
-                  {tour.image ? (
-                    <img
-                      src={tour.image}
-                      alt={tour.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <MapPin className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{tour.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {tour.description}
-                  </p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{tour.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{tour.duration} ngày</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>Tối đa {tour.max_participants} người</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <span className="text-lg font-bold text-primary">
-                      {formatPrice(tour.price)}
-                    </span>
-                    <Button asChild variant="outline" size="sm">
-                      <Link to={`/tours/${tour.id_tour}`}>
-                        Chi tiết
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <TourCard key={tour.id_tour} tour={tour} />
             ))}
           </div>
         )}
