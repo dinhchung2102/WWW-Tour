@@ -9,6 +9,7 @@ import {
   Users,
   FileText,
   MessageSquare,
+  ExternalLink,
   LogOut,
 } from "lucide-react";
 
@@ -82,6 +83,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </Link>
             );
           })}
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => window.open("/", "_blank")}
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Xem website
+          </Button>
         </nav>
         <div className="absolute bottom-0 left-0 right-0 border-t p-4">
           <div className="mb-4 px-2">

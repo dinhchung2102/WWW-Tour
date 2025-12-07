@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +21,6 @@ import { LogIn, LogOut } from "lucide-react";
 
 export function AppBar() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, isAuthenticated, login, logout, fetchProfile } = useAuthStore();
   const [loginOpen, setLoginOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -34,12 +33,6 @@ export function AppBar() {
       fetchProfile();
     }
   }, [isAuthenticated, user, fetchProfile]);
-
-  useEffect(() => {
-    if (isAuthenticated && user?.role === "ADMIN" && location.pathname !== "/admin") {
-      navigate("/admin");
-    }
-  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
