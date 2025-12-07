@@ -7,6 +7,8 @@ import {
   Package,
   Calendar,
   Users,
+  FileText,
+  MessageSquare,
   LogOut,
 } from "lucide-react";
 
@@ -44,6 +46,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       icon: Users,
       label: "Quản lý Khách hàng",
       path: "/admin/customers",
+    },
+    {
+      icon: FileText,
+      label: "Quản lý Thông tin",
+      path: "/admin/about",
+    },
+    {
+      icon: MessageSquare,
+      label: "Quản lý Liên hệ",
+      path: "/admin/contacts",
     },
   ];
 

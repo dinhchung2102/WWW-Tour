@@ -7,6 +7,10 @@ import type {
   Tour,
   Booking,
   TourDTO,
+  Info,
+  InfoDTO,
+  Contact,
+  ContactDTO,
 } from "@/types";
 
 const api = axios.create({
@@ -119,6 +123,77 @@ export const bookingAPI = {
   getAllBookings: async (): Promise<Booking[]> => {
     const response = await api.get("/bookings");
     return response.data;
+  },
+};
+
+// Info/About API
+export const infoAPI = {
+  getAllInfo: async (): Promise<Info[]> => {
+    const response = await api.get("/about/info");
+    return response.data;
+  },
+
+  getOrderedInfo: async (): Promise<Info[]> => {
+    const response = await api.get("/about/info/ordered");
+    return response.data;
+  },
+
+  getContactInfo: async (isContactInfo: boolean = true): Promise<Info[]> => {
+    const response = await api.get(
+      `/about/info/contact?isContactInfo=${isContactInfo}`
+    );
+    return response.data;
+  },
+
+  getInfoById: async (id: number): Promise<Info> => {
+    const response = await api.get(`/about/info/${id}`);
+    return response.data;
+  },
+
+  createInfo: async (data: InfoDTO): Promise<Info> => {
+    const response = await api.post("/about/info", data);
+    return response.data;
+  },
+
+  updateInfo: async (data: Info): Promise<Info> => {
+    const response = await api.put("/about/info", data);
+    return response.data;
+  },
+
+  deleteInfo: async (id: number): Promise<void> => {
+    await api.delete(`/about/info/${id}`);
+  },
+};
+
+// Contact API
+export const contactAPI = {
+  getAllContacts: async (): Promise<Contact[]> => {
+    const response = await api.get("/contact");
+    return response.data;
+  },
+
+  getActiveContacts: async (active: boolean = true): Promise<Contact[]> => {
+    const response = await api.get(`/contact/active?active=${active}`);
+    return response.data;
+  },
+
+  getContactById: async (id: number): Promise<Contact> => {
+    const response = await api.get(`/contact/${id}`);
+    return response.data;
+  },
+
+  createContact: async (data: ContactDTO): Promise<Contact> => {
+    const response = await api.post("/contact", { ...data, active: true });
+    return response.data;
+  },
+
+  updateContact: async (data: Contact): Promise<Contact> => {
+    const response = await api.put("/contact", data);
+    return response.data;
+  },
+
+  deleteContact: async (id: number): Promise<void> => {
+    await api.delete(`/contact/${id}`);
   },
 };
 

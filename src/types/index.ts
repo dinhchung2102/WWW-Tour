@@ -65,3 +65,43 @@ export interface Booking {
   total_price: number;
   created_at: string;
 }
+
+// Info/About types
+export interface Info {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  isContactInfo: boolean;
+  createdAt: string;
+  updatedAt: string;
+  orderIndex: number;
+}
+
+export interface InfoDTO {
+  title: string;
+  description: string;
+  image?: string;
+  isContactInfo: boolean;
+  orderIndex: number;
+}
+
+// Contact types
+export interface Contact {
+  id: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  description: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactDTO {
+  fullName: string;
+  phone: string;
+  email: string;
+  description: string;
+  active?: boolean;
+}
