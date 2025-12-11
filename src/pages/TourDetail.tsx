@@ -4,22 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { tourAPI } from "@/lib/api";
 import type { Tour } from "@/types";
-import { MapPin, Calendar, Users, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, Users, ArrowLeft, Tag, Percent } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { calculateDiscountedPrice, formatPrice } from "@/lib/utils";
 
 export function TourDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tour, setTour] = useState<Tour | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // --- Format Price ---
-  const formatPrice = (price?: number) => {
-    if (!price || isNaN(price)) return "Không có giá";
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
 
   // --- Safe Date Formatting ---
   const formatDate = (dateString?: string | null) => {
@@ -158,11 +151,64 @@ export function TourDetail() {
 
                 <div>
                   <p className="text-sm text-muted-foreground">Giá tour</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatPrice(tour.price)}
-                  </p>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-2xl font-bold text-primary">
+                      {formatPrice(calculateDiscountedPrice(tour.price, tour.promotion))}
+                    </p>
+                    {tour.promotion && calculateDiscountedPrice(tour.price, tour.promotion) < tour.price && (
+                      <span className="text-lg line-through text-muted-foreground">
+                        {formatPrice(tour.price)}
+                      </span>
+                    )}
+                  </div>
+                  {tour.promotion && calculateDiscountedPrice(tour.price, tour.promotion) < tour.price && (
+                    <Badge variant="secondary" className="mt-1 flex items-center gap-1 w-fit">
+                      <Tag className="h-3 w-3" />
+                      {tour.promotion.code}
+                      {tour.promotion.discountPercent && (
+                        <span className="ml-1">
+                          -{tour.promotion.discountPercent}%
+                        </span>
+                      )}
+                    </Badge>
+                  )}
                 </div>
               </div>
+
+              {/* Promotion Info */}
+              {tour.promotion && (
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Tag className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-primary mb-1">
+                        {tour.promotion.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {tour.promotion.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {tour.promotion.discountPercent && (
+                          <Badge variant="outline">
+                            <Percent className="h-3 w-3 mr-1" />
+                            Giảm {tour.promotion.discountPercent}%
+                          </Badge>
+                        )}
+                        {tour.promotion.discountAmount && (
+                          <Badge variant="outline">
+                            Giảm {formatPrice(tour.promotion.discountAmount)}
+                          </Badge>
+                        )}
+                        <Badge variant="outline">
+                          Mã: {tour.promotion.code}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Dates */}
               <div className="space-y-2 pt-4 border-t">

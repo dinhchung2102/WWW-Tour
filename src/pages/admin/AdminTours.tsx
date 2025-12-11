@@ -27,13 +27,23 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { tourAPI } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { tourAPI, promotionAPI } from "@/lib/api";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handler";
-import type { Tour, TourDTO } from "@/types";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { calculateDiscountedPrice, formatPrice } from "@/lib/utils";
+import type { Tour, TourDTO, Promotion } from "@/types";
+import { Plus, Edit, Trash2, Tag } from "lucide-react";
 
 export function AdminTours() {
   const [tours, setTours] = useState<Tour[]>([]);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -48,11 +58,13 @@ export function AdminTours() {
     start_date: "",
     end_date: "",
     image: "",
+    promotionId: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchTours();
+    fetchPromotions();
   }, []);
 
   const fetchTours = async () => {
@@ -61,8 +73,18 @@ export function AdminTours() {
       setTours(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch tours:", error);
+      showErrorToast(error, "Không thể tải danh sách tour");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPromotions = async () => {
+    try {
+      const data = await promotionAPI.getAllPromotions();
+      setPromotions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to fetch promotions:", error);
     }
   };
 
@@ -79,6 +101,7 @@ export function AdminTours() {
         start_date: tour.start_date.split("T")[0],
         end_date: tour.end_date.split("T")[0],
         image: tour.image || "",
+        promotionId: tour.promotionId || tour.promotion?.id || null,
       });
     } else {
       setSelectedTour(null);
@@ -92,6 +115,7 @@ export function AdminTours() {
         start_date: "",
         end_date: "",
         image: "",
+        promotionId: null,
       });
     }
     setIsDialogOpen(true);
@@ -107,18 +131,36 @@ export function AdminTours() {
     setIsSubmitting(true);
 
     try {
+      // Only send promotionId, not the promotion object
       const tourData: TourDTO = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        duration: formData.duration,
+        price: formData.price,
+        max_participants: formData.max_participants,
         start_date: new Date(formData.start_date).toISOString(),
         end_date: new Date(formData.end_date).toISOString(),
+        image: formData.image || undefined,
+        promotionId: formData.promotionId ?? undefined,
       };
 
       if (selectedTour) {
-        // Update tour
-        await tourAPI.updateTour({
+        // Update tour - only send necessary fields
+        const updateData: Tour = {
           ...selectedTour,
-          ...tourData,
-        });
+          title: tourData.title,
+          description: tourData.description,
+          location: tourData.location,
+          duration: tourData.duration,
+          price: tourData.price,
+          max_participants: tourData.max_participants,
+          start_date: tourData.start_date,
+          end_date: tourData.end_date,
+          image: tourData.image || "",
+          promotionId: tourData.promotionId ?? undefined,
+        };
+        await tourAPI.updateTour(updateData);
       } else {
         // Create tour
         await tourAPI.createTour(tourData);
@@ -126,7 +168,9 @@ export function AdminTours() {
 
       await fetchTours();
       handleCloseDialog();
-      showSuccessToast(selectedTour ? "Cập nhật tour thành công" : "Tạo tour thành công");
+      showSuccessToast(
+        selectedTour ? "Cập nhật tour thành công" : "Tạo tour thành công"
+      );
     } catch (error) {
       console.error("Failed to save tour:", error);
       showErrorToast(error, "Có lỗi xảy ra khi lưu tour");
@@ -148,13 +192,6 @@ export function AdminTours() {
       console.error("Failed to delete tour:", error);
       showErrorToast(error, "Có lỗi xảy ra khi xóa tour");
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
   };
 
   if (loading) {
@@ -197,6 +234,7 @@ export function AdminTours() {
                   <TableHead className="w-[100px]">Số người</TableHead>
                   <TableHead className="w-[120px]">Ngày bắt đầu</TableHead>
                   <TableHead className="w-[120px]">Ngày kết thúc</TableHead>
+                  <TableHead className="w-[150px]">Khuyến mãi</TableHead>
                   <TableHead className="w-[120px] text-right">
                     Hành động
                   </TableHead>
@@ -228,8 +266,21 @@ export function AdminTours() {
                     </TableCell>
                     <TableCell>{tour.location}</TableCell>
                     <TableCell>{tour.duration} ngày</TableCell>
-                    <TableCell className="font-medium text-primary">
-                      {formatPrice(tour.price)}
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-primary">
+                          {formatPrice(
+                            calculateDiscountedPrice(tour.price, tour.promotion)
+                          )}
+                        </span>
+                        {tour.promotion &&
+                          calculateDiscountedPrice(tour.price, tour.promotion) <
+                            tour.price && (
+                            <span className="text-xs line-through text-muted-foreground">
+                              {formatPrice(tour.price)}
+                            </span>
+                          )}
+                      </div>
                     </TableCell>
                     <TableCell>{tour.max_participants} người</TableCell>
                     <TableCell>
@@ -237,6 +288,21 @@ export function AdminTours() {
                     </TableCell>
                     <TableCell>
                       {new Date(tour.end_date).toLocaleDateString("vi-VN")}
+                    </TableCell>
+                    <TableCell>
+                      {tour.promotion ? (
+                        <Badge
+                          variant="secondary"
+                          className="flex items-center gap-1 w-fit"
+                        >
+                          <Tag className="h-3 w-3" />
+                          {tour.promotion.code}
+                        </Badge>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          Không có
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -406,6 +472,41 @@ export function AdminTours() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="promotionId">Khuyến mãi</Label>
+              <Select
+                value={formData.promotionId?.toString() || "none"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    promotionId: value === "none" ? null : parseInt(value),
+                  })
+                }
+              >
+                <SelectTrigger id="promotionId">
+                  <SelectValue placeholder="Chọn khuyến mãi (tùy chọn)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Không có khuyến mãi</SelectItem>
+                  {promotions
+                    .filter((p) => p.active)
+                    .map((promotion) => (
+                      <SelectItem
+                        key={promotion.id}
+                        value={promotion.id.toString()}
+                      >
+                        {promotion.code} - {promotion.title}
+                        {promotion.discountPercent
+                          ? ` (Giảm ${promotion.discountPercent}%)`
+                          : promotion.discountAmount
+                          ? ` (Giảm ${formatPrice(promotion.discountAmount)})`
+                          : ""}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">

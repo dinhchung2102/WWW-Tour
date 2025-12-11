@@ -43,6 +43,8 @@ export interface Tour {
   end_date: string;
   created_at?: string;
   image: string;
+  promotion?: Promotion;
+  promotionId?: number;
 }
 
 export interface TourDTO {
@@ -55,6 +57,7 @@ export interface TourDTO {
   start_date: string;
   end_date: string;
   image?: string;
+  promotionId?: number | null;
 }
 
 // Booking types
@@ -174,4 +177,54 @@ export interface NewsSearchParams {
   active?: boolean;
   page?: number;
   size?: number;
+}
+
+// Promotion types
+export interface Promotion {
+  id: number;
+  title: string;
+  description: string;
+  discountPercent: number;
+  discountAmount: number | null;
+  code: string;
+  startDate: string;
+  endDate: string;
+  minOrderAmount: number | null;
+  maxDiscountAmount: number | null;
+  usageLimit: number | null;
+  usedCount: number;
+  active: boolean;
+  image: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromotionDTO {
+  title: string;
+  description: string;
+  discountPercent: number;
+  discountAmount?: number | null;
+  code: string;
+  startDate: string;
+  endDate: string;
+  minOrderAmount?: number | null;
+  maxDiscountAmount?: number | null;
+  usageLimit?: number | null;
+  active?: boolean;
+  image?: string | null;
+}
+
+// Promotion Subscriber types
+export interface PromotionSubscriber {
+  id: number;
+  email: string;
+  name: string | null;
+  active: boolean;
+  subscribedAt: string;
+  unsubscribedAt: string | null;
+}
+
+export interface PromotionSubscriberDTO {
+  email: string;
+  name?: string | null;
 }

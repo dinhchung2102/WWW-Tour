@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Tour } from "@/types";
-import { MapPin, Calendar, Clock } from "lucide-react";
+import { MapPin, Calendar, Clock, Tag } from "lucide-react";
+import { calculateDiscountedPrice, formatPrice } from "@/lib/utils";
 
 interface TourCardProps {
   tour: Tour;
@@ -11,13 +12,6 @@ interface TourCardProps {
 }
 
 export function TourCard({ tour, className }: TourCardProps) {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("vi-VN", {
       day: "numeric",
@@ -28,6 +22,8 @@ export function TourCard({ tour, className }: TourCardProps) {
 
   const isUpcoming = new Date(tour.start_date) > new Date();
   const availableSlots = tour.max_participants;
+  const finalPrice = calculateDiscountedPrice(tour.price, tour.promotion);
+  const hasPromotion = tour.promotion && finalPrice < tour.price;
 
   return (
     <Card
@@ -49,6 +45,12 @@ export function TourCard({ tour, className }: TourCardProps) {
 
         {/* Overlay Badge */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {hasPromotion && (
+            <Badge className="bg-red-500 text-white">
+              <Tag className="h-3 w-3 mr-1" />
+              {tour.promotion?.code}
+            </Badge>
+          )}
           {isUpcoming && (
             <Badge className="bg-primary text-primary-foreground">
               Sắp khởi hành
@@ -115,9 +117,21 @@ export function TourCard({ tour, className }: TourCardProps) {
         <div className="flex items-center justify-between pt-2 border-t gap-4">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground mb-1">Giá từ</p>
-            <p className="text-xl font-bold text-primary">
-              {formatPrice(tour.price)}
-            </p>
+            <div className="flex flex-col gap-1">
+              <p className="text-xl font-bold text-primary">
+                {formatPrice(finalPrice)}
+              </p>
+              {hasPromotion && (
+                <span className="text-sm line-through text-muted-foreground">
+                  {formatPrice(tour.price)}
+                </span>
+              )}
+            </div>
+            {hasPromotion && tour.promotion?.discountPercent && (
+              <Badge variant="secondary" className="mt-1 text-xs">
+                Giảm {tour.promotion.discountPercent}%
+              </Badge>
+            )}
           </div>
           <Button asChild className="shrink-0">
             <Link to={`/tours/${tour.id_tour}`}>Xem chi tiết</Link>

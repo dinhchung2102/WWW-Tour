@@ -8,13 +8,13 @@ import { TourDetail } from "@/pages/TourDetail";
 import { Contact } from "@/pages/Contact";
 import { News } from "@/pages/News";
 import { NewsDetail } from "@/pages/NewsDetail";
+import { Promotions } from "@/pages/Promotions";
 import { AdminPage } from "@/pages/admin/AdminPage";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect } from "react";
 import { BookingForm } from "./pages/BookingForm";
 import PaymentPage from "./pages/PaymentPage";
-
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -47,6 +47,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/news" element={<News />} />
                 <Route path="/news/:id" element={<NewsDetail />} />
+                <Route path="/promotions" element={<Promotions />} />
                 <Route path="/booking/:id" element={<BookingForm />} />
                 <Route path="/payments" element={<PaymentPage />} />
               </Routes>

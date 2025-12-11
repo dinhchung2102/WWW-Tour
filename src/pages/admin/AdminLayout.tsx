@@ -11,6 +11,8 @@ import {
   MessageSquare,
   Newspaper,
   FolderTree,
+  Tag,
+  Mail,
   ExternalLink,
   LogOut,
 } from "lucide-react";
@@ -69,6 +71,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       icon: FolderTree,
       label: "Quản lý Danh mục Tin tức",
       path: "/admin/news-categories",
+    },
+    {
+      icon: Tag,
+      label: "Quản lý Khuyến mãi",
+      path: "/admin/promotions",
+    },
+    {
+      icon: Mail,
+      label: "Quản lý Người đăng ký",
+      path: "/admin/promotion-subscribers",
     },
   ];
 

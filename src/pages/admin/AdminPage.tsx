@@ -8,6 +8,8 @@ import { AdminAbout } from "./AdminAbout";
 import { AdminContacts } from "./AdminContacts";
 import { AdminNews } from "./AdminNews";
 import { AdminNewsCategory } from "./AdminNewsCategory";
+import { AdminPromotions } from "./AdminPromotions";
+import { AdminPromotionSubscribers } from "./AdminPromotionSubscribers";
 
 export function AdminPage() {
   return (
@@ -21,8 +23,12 @@ export function AdminPage() {
         <Route path="contacts" element={<AdminContacts />} />
         <Route path="news" element={<AdminNews />} />
         <Route path="news-categories" element={<AdminNewsCategory />} />
+        <Route path="promotions" element={<AdminPromotions />} />
+        <Route
+          path="promotion-subscribers"
+          element={<AdminPromotionSubscribers />}
+        />
       </Routes>
     </AdminLayout>
   );
 }
-

@@ -17,6 +17,10 @@ import type {
   NewsCategoryDTO,
   PageResponse,
   NewsSearchParams,
+  Promotion,
+  PromotionDTO,
+  PromotionSubscriber,
+  PromotionSubscriberDTO,
 } from "@/types";
 
 const api = axios.create({
@@ -301,13 +305,7 @@ export const newsAPI = {
   searchNews: async (
     params: NewsSearchParams = {}
   ): Promise<PageResponse<News>> => {
-    const {
-      keyword,
-      categoryId,
-      active,
-      page = 0,
-      size = 10,
-    } = params;
+    const { keyword, categoryId, active, page = 0, size = 10 } = params;
 
     const queryParams = new URLSearchParams();
     if (keyword) queryParams.append("keyword", keyword);
@@ -324,13 +322,13 @@ export const newsAPI = {
   uploadImage: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
-    
+
     const response = await api.post("/news/upload-image", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
-    
+
     // Handle both string and object responses
     if (typeof response.data === "string") {
       return response.data;
@@ -341,10 +339,7 @@ export const newsAPI = {
     throw new Error("Invalid response format from upload-image");
   },
 
-  createNewsWithImage: async (
-    data: NewsDTO,
-    file: File
-  ): Promise<News> => {
+  createNewsWithImage: async (data: NewsDTO, file: File): Promise<News> => {
     const formData = new FormData();
     formData.append("news", JSON.stringify(data));
     formData.append("file", file);
@@ -355,6 +350,90 @@ export const newsAPI = {
       },
     });
     return response.data;
+  },
+};
+
+// Promotion API
+export const promotionAPI = {
+  getAllPromotions: async (): Promise<Promotion[]> => {
+    const response = await api.get("/promotion");
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getActivePromotions: async (): Promise<Promotion[]> => {
+    const response = await api.get("/promotion/active");
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getPromotionsByStatus: async (
+    active: boolean = true
+  ): Promise<Promotion[]> => {
+    const response = await api.get(`/promotion/status?active=${active}`);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getPromotionByCode: async (code: string): Promise<Promotion> => {
+    const response = await api.get(`/promotion/code/${code}`);
+    return response.data;
+  },
+
+  getPromotionById: async (id: number): Promise<Promotion> => {
+    const response = await api.get(`/promotion/${id}`);
+    return response.data;
+  },
+
+  createPromotion: async (data: PromotionDTO): Promise<Promotion> => {
+    const response = await api.post("/promotion", data);
+    return response.data;
+  },
+
+  updatePromotion: async (data: Promotion): Promise<Promotion> => {
+    const response = await api.put("/promotion", data);
+    return response.data;
+  },
+
+  deletePromotion: async (id: number): Promise<void> => {
+    await api.delete(`/promotion/${id}`);
+  },
+};
+
+// Promotion Subscriber API
+export const promotionSubscriberAPI = {
+  subscribe: async (
+    data: PromotionSubscriberDTO
+  ): Promise<PromotionSubscriber> => {
+    const response = await api.post("/promotion-subscriber/subscribe", data);
+    return response.data;
+  },
+
+  unsubscribe: async (email: string): Promise<string> => {
+    const response = await api.post("/promotion-subscriber/unsubscribe", {
+      email,
+    });
+    return response.data;
+  },
+
+  getAllSubscribers: async (): Promise<PromotionSubscriber[]> => {
+    const response = await api.get("/promotion-subscriber");
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getSubscribersByStatus: async (
+    active: boolean = true
+  ): Promise<PromotionSubscriber[]> => {
+    const response = await api.get(
+      `/promotion-subscriber/active?active=${active}`
+    );
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getSubscriberByEmail: async (email: string): Promise<PromotionSubscriber> => {
+    const response = await api.get(`/promotion-subscriber/email/${email}`);
+    return response.data;
+  },
+
+  deleteSubscriber: async (id: number): Promise<void> => {
+    await api.delete(`/promotion-subscriber/${id}`);
   },
 };
 
