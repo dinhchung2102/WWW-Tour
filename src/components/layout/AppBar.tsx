@@ -53,6 +53,9 @@ export function AppBar() {
   });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState("");
+  const [registerStep, setRegisterStep] = useState<"form" | "otp">("form");
+  const [otp, setOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && !user) {
@@ -87,26 +90,60 @@ export function AppBar() {
     navigate("/");
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegisterError("");
     setRegisterLoading(true);
 
     try {
-      await authAPI.register({
+      const message = await authAPI.sendOTP({
         ...registerData,
         role: "CUSTOMER",
       });
-      setRegisterOpen(false);
-      setRegisterData({ name: "", email: "", password: "", phone: "" });
+      setRegisterStep("otp");
+      showSuccessToast(message || "OTP đã được gửi đến email của bạn");
+    } catch (err) {
+      const message = getErrorMessage(err) || "Gửi OTP thất bại";
+      setRegisterError(message);
+      showErrorToast(err, "Gửi OTP thất bại");
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegisterError("");
+    setOtpLoading(true);
+
+    try {
+      await authAPI.verifyOTP(registerData.email, otp);
+      handleCloseRegister(false);
       setLoginOpen(true);
       showSuccessToast("Đăng ký thành công! Vui lòng đăng nhập");
     } catch (err) {
-      const message = getErrorMessage(err) || "Đăng ký thất bại";
+      const message = getErrorMessage(err) || "Xác thực OTP thất bại";
       setRegisterError(message);
-      showErrorToast(err, "Đăng ký thất bại");
+      showErrorToast(err, "Xác thực OTP thất bại");
     } finally {
-      setRegisterLoading(false);
+      setOtpLoading(false);
+    }
+  };
+
+  const handleBackToForm = () => {
+    setRegisterStep("form");
+    setOtp("");
+    setRegisterError("");
+  };
+
+  const handleCloseRegister = (open: boolean) => {
+    setRegisterOpen(open);
+    if (!open) {
+      // Reset all register states when closing
+      setRegisterStep("form");
+      setOtp("");
+      setRegisterError("");
+      setRegisterData({ name: "", email: "", password: "", phone: "" });
     }
   };
 
@@ -321,7 +358,7 @@ export function AppBar() {
                 </Dialog>
 
                 {/* Register Dialog */}
-                <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
+                <Dialog open={registerOpen} onOpenChange={handleCloseRegister}>
                   <DialogContent className="p-0 sm:max-w-sm">
                     <DialogTitle className="sr-only">
                       Đăng ký tài khoản
@@ -331,16 +368,22 @@ export function AppBar() {
                     </DialogDescription>
                     <Card className="w-full border-0 shadow-none">
                       <CardHeader>
-                        <CardTitle>Đăng ký tài khoản</CardTitle>
+                        <CardTitle>
+                          {registerStep === "form"
+                            ? "Đăng ký tài khoản"
+                            : "Xác thực OTP"}
+                        </CardTitle>
                         <CardDescription>
-                          Tạo tài khoản mới để bắt đầu trải nghiệm
+                          {registerStep === "form"
+                            ? "Tạo tài khoản mới để bắt đầu trải nghiệm"
+                            : `Nhập mã OTP đã được gửi đến ${registerData.email}`}
                         </CardDescription>
                         <CardAction>
                           <Button
                             variant="link"
                             onClick={(e) => {
                               e.preventDefault();
-                              setRegisterOpen(false);
+                              handleCloseRegister(false);
                               setLoginOpen(true);
                             }}
                           >
@@ -349,124 +392,186 @@ export function AppBar() {
                         </CardAction>
                       </CardHeader>
                       <CardContent>
-                        <form onSubmit={handleRegister} id="register-form">
-                          <div className="flex flex-col gap-6">
-                            {registerError && (
-                              <p className="text-sm text-destructive">
-                                {registerError}
-                              </p>
-                            )}
-                            <div className="grid gap-2">
-                              <Label htmlFor="register-name">Họ và tên</Label>
-                              <Input
-                                id="register-name"
-                                value={registerData.name}
-                                onChange={(e) =>
-                                  setRegisterData({
-                                    ...registerData,
-                                    name: e.target.value,
-                                  })
-                                }
-                                required
-                              />
+                        {registerStep === "form" ? (
+                          <form onSubmit={handleSendOTP} id="register-form">
+                            <div className="flex flex-col gap-6">
+                              {registerError && (
+                                <p className="text-sm text-destructive">
+                                  {registerError}
+                                </p>
+                              )}
+                              <div className="grid gap-2">
+                                <Label htmlFor="register-name">Họ và tên</Label>
+                                <Input
+                                  id="register-name"
+                                  value={registerData.name}
+                                  onChange={(e) =>
+                                    setRegisterData({
+                                      ...registerData,
+                                      name: e.target.value,
+                                    })
+                                  }
+                                  required
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="register-email">Email</Label>
+                                <Input
+                                  id="register-email"
+                                  type="email"
+                                  placeholder="m@example.com"
+                                  value={registerData.email}
+                                  onChange={(e) =>
+                                    setRegisterData({
+                                      ...registerData,
+                                      email: e.target.value,
+                                    })
+                                  }
+                                  required
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="register-phone">
+                                  Số điện thoại
+                                </Label>
+                                <Input
+                                  id="register-phone"
+                                  type="tel"
+                                  value={registerData.phone}
+                                  onChange={(e) =>
+                                    setRegisterData({
+                                      ...registerData,
+                                      phone: e.target.value,
+                                    })
+                                  }
+                                  required
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="register-password">
+                                  Mật khẩu
+                                </Label>
+                                <Input
+                                  id="register-password"
+                                  type="password"
+                                  value={registerData.password}
+                                  onChange={(e) =>
+                                    setRegisterData({
+                                      ...registerData,
+                                      password: e.target.value,
+                                    })
+                                  }
+                                  required
+                                />
+                              </div>
                             </div>
-                            <div className="grid gap-2">
-                              <Label htmlFor="register-email">Email</Label>
-                              <Input
-                                id="register-email"
-                                type="email"
-                                placeholder="m@example.com"
-                                value={registerData.email}
-                                onChange={(e) =>
-                                  setRegisterData({
-                                    ...registerData,
-                                    email: e.target.value,
-                                  })
-                                }
-                                required
-                              />
+                          </form>
+                        ) : (
+                          <form onSubmit={handleVerifyOTP} id="otp-form">
+                            <div className="flex flex-col gap-6">
+                              {registerError && (
+                                <p className="text-sm text-destructive">
+                                  {registerError}
+                                </p>
+                              )}
+                              <div className="grid gap-2">
+                                <Label htmlFor="otp">Mã OTP</Label>
+                                <Input
+                                  id="otp"
+                                  type="text"
+                                  placeholder="Nhập mã OTP 6 số"
+                                  value={otp}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(
+                                      /\D/g,
+                                      ""
+                                    );
+                                    if (value.length <= 6) {
+                                      setOtp(value);
+                                    }
+                                  }}
+                                  maxLength={6}
+                                  required
+                                  className="text-center text-2xl tracking-widest"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Mã OTP đã được gửi đến email của bạn. Vui lòng
+                                  kiểm tra hộp thư.
+                                </p>
+                              </div>
                             </div>
-                            <div className="grid gap-2">
-                              <Label htmlFor="register-phone">
-                                Số điện thoại
-                              </Label>
-                              <Input
-                                id="register-phone"
-                                type="tel"
-                                value={registerData.phone}
-                                onChange={(e) =>
-                                  setRegisterData({
-                                    ...registerData,
-                                    phone: e.target.value,
-                                  })
-                                }
-                                required
-                              />
-                            </div>
-                            <div className="grid gap-2">
-                              <Label htmlFor="register-password">
-                                Mật khẩu
-                              </Label>
-                              <Input
-                                id="register-password"
-                                type="password"
-                                value={registerData.password}
-                                onChange={(e) =>
-                                  setRegisterData({
-                                    ...registerData,
-                                    password: e.target.value,
-                                  })
-                                }
-                                required
-                              />
-                            </div>
-                          </div>
-                        </form>
+                          </form>
+                        )}
                       </CardContent>
                       <CardFooter className="flex-col gap-2">
-                        <Button
-                          type="submit"
-                          form="register-form"
-                          className="w-full"
-                          disabled={registerLoading}
-                        >
-                          {registerLoading ? "Đang đăng ký..." : "Đăng ký"}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => {
-                            window.location.href = `${
-                              import.meta.env.VITE_API_URL ||
-                              "http://localhost:8080"
-                            }/customer/auth/login/google`;
-                          }}
-                        >
-                          <svg
-                            className="mr-2 h-4 w-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                              fill="#4285F4"
-                            />
-                            <path
-                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                              fill="#34A853"
-                            />
-                            <path
-                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                              fill="#FBBC05"
-                            />
-                            <path
-                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                              fill="#EA4335"
-                            />
-                          </svg>
-                          Đăng ký với Google
-                        </Button>
+                        {registerStep === "form" ? (
+                          <>
+                            <Button
+                              type="submit"
+                              form="register-form"
+                              className="w-full"
+                              disabled={registerLoading}
+                            >
+                              {registerLoading
+                                ? "Đang gửi OTP..."
+                                : "Gửi mã OTP"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => {
+                                window.location.href = `${
+                                  import.meta.env.VITE_API_URL ||
+                                  "http://localhost:8080"
+                                }/customer/auth/login/google`;
+                              }}
+                            >
+                              <svg
+                                className="mr-2 h-4 w-4"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                  fill="#4285F4"
+                                />
+                                <path
+                                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                  fill="#34A853"
+                                />
+                                <path
+                                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                  fill="#FBBC05"
+                                />
+                                <path
+                                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                  fill="#EA4335"
+                                />
+                              </svg>
+                              Đăng ký với Google
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              type="submit"
+                              form="otp-form"
+                              className="w-full"
+                              disabled={otpLoading}
+                            >
+                              {otpLoading ? "Đang xác thực..." : "Xác thực OTP"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              onClick={handleBackToForm}
+                              disabled={otpLoading}
+                            >
+                              Quay lại
+                            </Button>
+                          </>
+                        )}
                       </CardFooter>
                     </Card>
                   </DialogContent>

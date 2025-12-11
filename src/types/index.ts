@@ -156,3 +156,22 @@ export interface NewsDTO {
   active?: boolean;
   featured?: boolean;
 }
+
+// Pagination types
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
+export interface NewsSearchParams {
+  keyword?: string;
+  categoryId?: number;
+  active?: boolean;
+  page?: number;
+  size?: number;
+}

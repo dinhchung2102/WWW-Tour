@@ -5,66 +5,92 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { newsAPI, newsCategoryAPI } from "@/lib/api";
-import type { News, NewsCategory } from "@/types";
-import { Search, Calendar, Eye, User } from "lucide-react";
+import type { News, NewsCategory, PageResponse } from "@/types";
+import {
+  Search,
+  Calendar,
+  Eye,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+} from "lucide-react";
 import { showErrorToast } from "@/lib/error-handler";
 
 export function News() {
-  const [news, setNews] = useState<News[]>([]);
-  const [filteredNews, setFilteredNews] = useState<News[]>([]);
+  const [newsData, setNewsData] = useState<PageResponse<News> | null>(null);
   const [categories, setCategories] = useState<NewsCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [pageSize] = useState(12);
 
+  // Fetch categories
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
-        const [newsData, categoriesData] = await Promise.all([
-          newsAPI.getActiveNews(true),
-          newsCategoryAPI.getActiveCategories(true),
-        ]);
-
-        const newsArray = Array.isArray(newsData) ? newsData : [];
-        const categoriesArray = Array.isArray(categoriesData)
-          ? categoriesData
-          : [];
-
-        setNews(newsData);
-        setFilteredNews(newsArray);
-        setCategories(categoriesArray);
+        const categoriesData = await newsCategoryAPI.getActiveCategories(true);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
       } catch (error) {
-        showErrorToast(error, "Không thể tải danh sách tin tức");
-      } finally {
-        setLoading(false);
+        console.error("Failed to fetch categories:", error);
       }
     };
-
-    fetchData();
+    fetchCategories();
   }, []);
 
+  // Search news
+  const searchNews = async () => {
+    setLoading(true);
+    try {
+      const response = await newsAPI.searchNews({
+        keyword: searchTerm.trim() || undefined,
+        categoryId: selectedCategory || undefined,
+        active: true,
+        page: 0,
+        size: pageSize,
+      });
+      setNewsData(response);
+    } catch (error) {
+      showErrorToast(error, "Không thể tải danh sách tin tức");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data when page changes
+  const loadPage = async (page: number) => {
+    setLoading(true);
+    try {
+      const response = await newsAPI.searchNews({
+        keyword: searchTerm.trim() || undefined,
+        categoryId: selectedCategory || undefined,
+        active: true,
+        page: page,
+        size: pageSize,
+      });
+      setNewsData(response);
+    } catch (error) {
+      showErrorToast(error, "Không thể tải danh sách tin tức");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial load
   useEffect(() => {
-    let filtered = news;
+    searchNews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    // Filter by search term
-    if (searchTerm.trim() !== "") {
-      filtered = filtered.filter(
-        (item) =>
-          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.content.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory !== null) {
-      filtered = filtered.filter(
-        (item) => item.categoryId === selectedCategory
-      );
-    }
-
-    setFilteredNews(filtered);
-  }, [searchTerm, selectedCategory, news]);
+  // Handle clear filters
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory(null);
+    // Trigger search with cleared filters
+    setTimeout(() => {
+      searchNews();
+    }, 0);
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("vi-VN", {
@@ -86,48 +112,64 @@ export function News() {
         </div>
 
         {/* Filters */}
-        <div className="max-w-4xl mx-auto mb-8 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Tìm kiếm tin tức..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {/* Category Filter */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(null)}
-              >
-                Tất cả
-              </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={
-                    selectedCategory === category.id ? "default" : "outline"
+        <div className="max-w-6xl mx-auto mb-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Tìm kiếm tin tức..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    searchNews();
                   }
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                >
-                  {category.name}
-                </Button>
-              ))}
+                }}
+                className="pl-10"
+              />
             </div>
-          )}
+
+            {/* Category Filter */}
+            {categories.length > 0 && (
+              <>
+                <Button
+                  variant={selectedCategory === null ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  Tất cả
+                </Button>
+                {categories.map((category) => (
+                  <Button
+                    key={category.id}
+                    variant={
+                      selectedCategory === category.id ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+              </>
+            )}
+
+            <Button onClick={searchNews} disabled={loading}>
+              <Search className="h-4 w-4" />
+              Tìm kiếm
+            </Button>
+            <Button variant="outline" onClick={handleClearFilters}>
+              <Trash2 className="h-4 w-4" />
+              Xóa bộ lọc
+            </Button>
+          </div>
         </div>
 
         {/* News Grid */}
         {loading ? (
           <div className="text-center py-12">Đang tải...</div>
-        ) : filteredNews.length === 0 ? (
+        ) : !newsData || newsData.content.length === 0 ? (
           <div className="text-center py-12 space-y-4">
             <p className="text-muted-foreground">
               {searchTerm || selectedCategory !== null
@@ -147,53 +189,122 @@ export function News() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredNews.map((item) => (
-              <Card
-                key={item.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <Link to={`/news/${item.id}`}>
-                  {item.image && (
-                    <div className="aspect-video bg-muted overflow-hidden">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-                  <CardContent className="p-4 space-y-3">
-                    {item.featured && (
-                      <Badge className="bg-primary">Nổi bật</Badge>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {newsData.content.map((item) => (
+                <Card
+                  key={item.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <Link to={`/news/${item.id}`}>
+                    {item.image && (
+                      <div className="aspect-video bg-muted overflow-hidden">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
                     )}
-                    <h3 className="font-semibold text-lg line-clamp-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {item.summary}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(item.createdAt)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {item.views}
-                      </div>
-                      {item.author && (
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {item.author}
-                        </div>
+                    <CardContent className="p-4 space-y-3">
+                      {item.featured && (
+                        <Badge className="bg-primary">Nổi bật</Badge>
                       )}
-                    </div>
-                  </CardContent>
-                </Link>
-              </Card>
-            ))}
-          </div>
+                      <h3 className="font-semibold text-lg line-clamp-2">
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {item.summary}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(item.createdAt)}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {item.views}
+                        </div>
+                        {item.author && (
+                          <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {item.author}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Link>
+                </Card>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {newsData && newsData.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadPage(newsData.page - 1)}
+                  disabled={newsData.first || loading}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Trước
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from(
+                    { length: Math.min(5, newsData.totalPages) },
+                    (_, i) => {
+                      let pageNum;
+                      if (newsData.totalPages <= 5) {
+                        pageNum = i;
+                      } else if (newsData.page < 3) {
+                        pageNum = i;
+                      } else if (newsData.page > newsData.totalPages - 4) {
+                        pageNum = newsData.totalPages - 5 + i;
+                      } else {
+                        pageNum = newsData.page - 2 + i;
+                      }
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={
+                            newsData.page === pageNum ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => loadPage(pageNum)}
+                          disabled={loading}
+                        >
+                          {pageNum + 1}
+                        </Button>
+                      );
+                    }
+                  )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadPage(newsData.page + 1)}
+                  disabled={newsData.last || loading}
+                >
+                  Sau
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Pagination Info */}
+            {newsData && (
+              <div className="text-center text-sm text-muted-foreground mt-4">
+                Hiển thị {newsData.content.length} / {newsData.totalElements}{" "}
+                tin tức
+                {newsData.totalPages > 1 &&
+                  ` - Trang ${newsData.page + 1} / ${newsData.totalPages}`}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -15,6 +15,8 @@ import type {
   NewsDTO,
   NewsCategory,
   NewsCategoryDTO,
+  PageResponse,
+  NewsSearchParams,
 } from "@/types";
 
 const api = axios.create({
@@ -42,6 +44,26 @@ export const authAPI = {
 
   register: async (data: RegisterRequest): Promise<Customer> => {
     const response = await api.post("/customer/auth/register", data);
+    return response.data;
+  },
+
+  sendOTP: async (data: RegisterRequest): Promise<string> => {
+    const response = await api.post("/customer/auth/register/send-otp", data);
+    // Handle both string and object responses
+    if (typeof response.data === "string") {
+      return response.data;
+    }
+    if (response.data?.message) {
+      return response.data.message;
+    }
+    return "OTP đã được gửi đến email của bạn";
+  },
+
+  verifyOTP: async (email: string, otp: string): Promise<Customer> => {
+    const response = await api.post("/customer/auth/register/verify-otp", {
+      email,
+      otp,
+    });
     return response.data;
   },
 
@@ -274,6 +296,65 @@ export const newsAPI = {
 
   deleteNews: async (id: number): Promise<void> => {
     await api.delete(`/news/${id}`);
+  },
+
+  searchNews: async (
+    params: NewsSearchParams = {}
+  ): Promise<PageResponse<News>> => {
+    const {
+      keyword,
+      categoryId,
+      active,
+      page = 0,
+      size = 10,
+    } = params;
+
+    const queryParams = new URLSearchParams();
+    if (keyword) queryParams.append("keyword", keyword);
+    if (categoryId !== undefined)
+      queryParams.append("categoryId", categoryId.toString());
+    if (active !== undefined) queryParams.append("active", active.toString());
+    queryParams.append("page", page.toString());
+    queryParams.append("size", size.toString());
+
+    const response = await api.get(`/news/search?${queryParams.toString()}`);
+    return response.data;
+  },
+
+  uploadImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    const response = await api.post("/news/upload-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    
+    // Handle both string and object responses
+    if (typeof response.data === "string") {
+      return response.data;
+    }
+    if (response.data?.url) {
+      return response.data.url;
+    }
+    throw new Error("Invalid response format from upload-image");
+  },
+
+  createNewsWithImage: async (
+    data: NewsDTO,
+    file: File
+  ): Promise<News> => {
+    const formData = new FormData();
+    formData.append("news", JSON.stringify(data));
+    formData.append("file", file);
+
+    const response = await api.post("/news/with-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
   },
 };
 
