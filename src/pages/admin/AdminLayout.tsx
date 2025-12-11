@@ -9,6 +9,8 @@ import {
   Users,
   FileText,
   MessageSquare,
+  Newspaper,
+  FolderTree,
   ExternalLink,
   LogOut,
 } from "lucide-react";
@@ -57,6 +59,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       icon: MessageSquare,
       label: "Quản lý Liên hệ",
       path: "/admin/contacts",
+    },
+    {
+      icon: Newspaper,
+      label: "Quản lý Tin tức",
+      path: "/admin/news",
+    },
+    {
+      icon: FolderTree,
+      label: "Quản lý Danh mục Tin tức",
+      path: "/admin/news-categories",
     },
   ];
 

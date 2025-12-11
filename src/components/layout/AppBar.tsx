@@ -147,6 +147,12 @@ export function AppBar() {
               Tours
             </Link>
             <Link
+              to="/news"
+              className="font-medium transition-colors hover:text-primary uppercase"
+            >
+              Tin tức
+            </Link>
+            <Link
               to="/contact"
               className="font-medium transition-colors hover:text-primary uppercase"
             >
@@ -156,46 +162,42 @@ export function AppBar() {
 
           <div className="flex items-center gap-4">
             {isAuthenticated && user ? (
-              <>
-                {user.role === "ADMIN" && (
-                  <Button variant="outline" asChild>
-                    <Link to="/admin">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Quản lý
-                    </Link>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <Avatar>
+                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:inline">{user.name}</span>
                   </Button>
-                )}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
-                      <Avatar>
-                        <AvatarFallback>
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="hidden sm:inline">{user.name}</span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56" align="end">
-                    <div className="flex flex-col gap-2">
-                      <div className="px-2 py-1.5">
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        className="justify-start"
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Đăng xuất
-                      </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56" align="end">
+                  <div className="flex flex-col gap-2">
+                    <div className="px-2 py-1.5">
+                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              </>
+                    {user.role === "ADMIN" && (
+                      <Button variant="ghost" className="justify-start" asChild>
+                        <Link to="/admin">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Quản lý
+                        </Link>
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Đăng xuất
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             ) : (
               <>
                 <Dialog open={loginOpen} onOpenChange={setLoginOpen}>

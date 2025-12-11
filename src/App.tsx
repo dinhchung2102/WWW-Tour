@@ -6,6 +6,8 @@ import { About } from "@/pages/About";
 import { Tours } from "@/pages/Tours";
 import { TourDetail } from "@/pages/TourDetail";
 import { Contact } from "@/pages/Contact";
+import { News } from "@/pages/News";
+import { NewsDetail } from "@/pages/NewsDetail";
 import { AdminPage } from "@/pages/admin/AdminPage";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
@@ -43,6 +45,8 @@ function App() {
                 <Route path="/tours" element={<Tours />} />
                 <Route path="/tours/:id" element={<TourDetail />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/news" element={<News />} />
+                <Route path="/news/:id" element={<NewsDetail />} />
                 <Route path="/booking/:id" element={<BookingForm />} />
                 <Route path="/payments" element={<PaymentPage />} />
               </Routes>

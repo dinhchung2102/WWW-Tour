@@ -108,3 +108,51 @@ export interface ContactDTO {
   description: string;
   active?: boolean;
 }
+
+// News Category types
+export interface NewsCategory {
+  id: number;
+  name: string;
+  description: string;
+  slug: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsCategoryDTO {
+  name: string;
+  description: string;
+  slug: string;
+  active?: boolean;
+}
+
+// News types
+export interface News {
+  id: number;
+  title: string;
+  content: string;
+  summary: string;
+  image: string;
+  slug: string;
+  categoryId: number;
+  categoryName?: string;
+  author: string;
+  views: number;
+  active: boolean;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsDTO {
+  title: string;
+  content: string;
+  summary: string;
+  image?: string;
+  slug: string;
+  categoryId: number;
+  author: string;
+  active?: boolean;
+  featured?: boolean;
+}

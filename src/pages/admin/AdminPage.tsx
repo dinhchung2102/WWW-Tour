@@ -6,6 +6,8 @@ import { AdminBookings } from "./AdminBookings";
 import { AdminCustomers } from "./AdminCustomers";
 import { AdminAbout } from "./AdminAbout";
 import { AdminContacts } from "./AdminContacts";
+import { AdminNews } from "./AdminNews";
+import { AdminNewsCategory } from "./AdminNewsCategory";
 
 export function AdminPage() {
   return (
@@ -17,6 +19,8 @@ export function AdminPage() {
         <Route path="customers" element={<AdminCustomers />} />
         <Route path="about" element={<AdminAbout />} />
         <Route path="contacts" element={<AdminContacts />} />
+        <Route path="news" element={<AdminNews />} />
+        <Route path="news-categories" element={<AdminNewsCategory />} />
       </Routes>
     </AdminLayout>
   );

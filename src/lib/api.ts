@@ -11,6 +11,10 @@ import type {
   InfoDTO,
   Contact,
   ContactDTO,
+  News,
+  NewsDTO,
+  NewsCategory,
+  NewsCategoryDTO,
 } from "@/types";
 
 const api = axios.create({
@@ -194,6 +198,82 @@ export const contactAPI = {
 
   deleteContact: async (id: number): Promise<void> => {
     await api.delete(`/contact/${id}`);
+  },
+};
+
+// News Category API
+export const newsCategoryAPI = {
+  getAllCategories: async (): Promise<NewsCategory[]> => {
+    const response = await api.get("/news-category");
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getActiveCategories: async (
+    active: boolean = true
+  ): Promise<NewsCategory[]> => {
+    const response = await api.get(`/news-category/active?active=${active}`);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getCategoryById: async (id: number): Promise<NewsCategory> => {
+    const response = await api.get(`/news-category/${id}`);
+    return response.data;
+  },
+
+  createCategory: async (data: NewsCategoryDTO): Promise<NewsCategory> => {
+    const response = await api.post("/news-category", data);
+    return response.data;
+  },
+
+  updateCategory: async (data: NewsCategory): Promise<NewsCategory> => {
+    const response = await api.put("/news-category", data);
+    return response.data;
+  },
+
+  deleteCategory: async (id: number): Promise<void> => {
+    await api.delete(`/news-category/${id}`);
+  },
+};
+
+// News API
+export const newsAPI = {
+  getAllNews: async (): Promise<News[]> => {
+    const response = await api.get("/news");
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getActiveNews: async (active: boolean = true): Promise<News[]> => {
+    const response = await api.get(`/news/active?active=${active}`);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getNewsByCategory: async (categoryId: number): Promise<News[]> => {
+    const response = await api.get(`/news/category/${categoryId}`);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getFeaturedNews: async (featured: boolean = true): Promise<News[]> => {
+    const response = await api.get(`/news/featured?featured=${featured}`);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getNewsById: async (id: number): Promise<News> => {
+    const response = await api.get(`/news/${id}`);
+    return response.data;
+  },
+
+  createNews: async (data: NewsDTO): Promise<News> => {
+    const response = await api.post("/news", data);
+    return response.data;
+  },
+
+  updateNews: async (data: News): Promise<News> => {
+    const response = await api.put("/news", data);
+    return response.data;
+  },
+
+  deleteNews: async (id: number): Promise<void> => {
+    await api.delete(`/news/${id}`);
   },
 };
 
