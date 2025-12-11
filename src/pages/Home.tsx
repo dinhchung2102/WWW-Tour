@@ -73,12 +73,12 @@ export function Home() {
             align: "start",
             loop: true,
           }}
-          className="w-full"
+          className="w-full h-auto"
         >
           <CarouselContent>
             {banners.map((banner, index) => (
               <CarouselItem key={index}>
-                <div className="relative w-full h-[300px] md:h-[300px] lg:h-[250px] overflow-hidden group">
+                <div className="relative w-full overflow-hidden group">
                   <img
                     src={banner}
                     alt={`Banner ${index + 1}`}
@@ -130,9 +130,9 @@ export function Home() {
 
           {tours.length > 0 && (
             <div className="text-center mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-              <Button 
-                asChild 
-                variant="outline" 
+              <Button
+                asChild
+                variant="outline"
                 size="default"
                 className="transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-primary hover:text-primary-foreground"
               >
@@ -179,9 +179,9 @@ export function Home() {
 
           {domesticTours.length > 0 && (
             <div className="text-center mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-              <Button 
-                asChild 
-                variant="outline" 
+              <Button
+                asChild
+                variant="outline"
                 size="default"
                 className="transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-primary hover:text-primary-foreground"
               >
@@ -228,9 +228,9 @@ export function Home() {
 
           {internationalTours.length > 0 && (
             <div className="text-center mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-              <Button 
-                asChild 
-                variant="outline" 
+              <Button
+                asChild
+                variant="outline"
                 size="default"
                 className="transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-primary hover:text-primary-foreground"
               >

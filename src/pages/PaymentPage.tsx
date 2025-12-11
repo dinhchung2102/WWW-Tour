@@ -41,10 +41,19 @@ export default function PaymentPage() {
       console.log("PAYMENT RESPONSE:", data);
 
       if (data.paymentUrl) {
-        window.location.href = data.paymentUrl; // Redirect to gateway
+        // Redirect to payment gateway (VNPay/Momo)
+        // Gateway will redirect back to /payment/result after payment
+        window.location.href = data.paymentUrl;
       } else {
-        alert("Thanh toán COD thành công!");
-        navigate("/bookings");
+        // COD payment - navigate to PaymentResultPage with success
+        navigate("/payment/result", {
+          state: {
+            success: true,
+            message: "Thanh toán COD thành công!",
+            orderId: orderId.toString(),
+            amount: amount,
+          },
+        });
       }
     } catch (error) {
       console.error("Payment error:", error);

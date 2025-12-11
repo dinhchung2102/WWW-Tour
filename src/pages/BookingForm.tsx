@@ -47,6 +47,11 @@ export function BookingForm() {
     });
   };
 
+  // --- Scroll to top when component mounts or id changes ---
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   // --- Fetch Tour ---
   useEffect(() => {
     const fetchTour = async () => {
@@ -180,11 +185,17 @@ export function BookingForm() {
 
       console.log("✅ Booking response:", response);
 
-      // Show success message and redirect to home
-      alert("Đặt tour thành công!");
+      // Get booking ID from response
+      const orderId = response.id;
 
-      // Navigate to home page
-      navigate("/");
+      // Navigate to payment page to choose payment method
+      navigate("/payments", {
+        state: {
+          orderId,
+          amount: bookingData.total_price,
+          description: `Thanh toán tour ${tour?.title}`,
+        },
+      });
     } catch (err: unknown) {
       console.error("❌ Booking error:", err);
 

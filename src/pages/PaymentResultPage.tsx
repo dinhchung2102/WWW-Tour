@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { bookingAPI, tourAPI } from "@/lib/api";
+import type { Booking, Tour } from "@/types";
+import { formatPrice } from "@/lib/utils";
 
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<{
     success: boolean;
@@ -16,10 +26,32 @@ export default function PaymentResultPage() {
     amount?: number;
     transactionId?: string;
   } | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [bookingDetail, setBookingDetail] = useState<Booking | null>(null);
+  const [tourDetail, setTourDetail] = useState<Tour | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
     const processPaymentResult = async () => {
       try {
+        // Check if result is passed from state (e.g., COD payment)
+        if (location.state) {
+          const stateResult = location.state as {
+            success: boolean;
+            message: string;
+            orderId?: string;
+            amount?: number;
+          };
+          setResult({
+            success: stateResult.success,
+            message: stateResult.message || "Thanh toán thành công!",
+            orderId: stateResult.orderId,
+            amount: stateResult.amount,
+          });
+          setLoading(false);
+          return;
+        }
+
         // Get VNPay params from URL
         const vnp_ResponseCode = searchParams.get("vnp_ResponseCode");
         const vnp_TxnRef = searchParams.get("vnp_TxnRef");
@@ -51,11 +83,6 @@ export default function PaymentResultPage() {
             amount: vnp_Amount ? parseInt(vnp_Amount) / 100 : undefined,
             transactionId: vnp_TransactionNo || undefined,
           });
-
-          // ✅ Auto redirect sau 3 giây
-          setTimeout(() => {
-            navigate("/my-bookings");
-          }, 3000);
         } else {
           const errorMessages: Record<string, string> = {
             "07": "Giao dịch bị nghi ngờ gian lận",
@@ -89,7 +116,56 @@ export default function PaymentResultPage() {
     };
 
     processPaymentResult();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, location.state]);
+
+  const handleViewDetail = async () => {
+    if (!result?.orderId) return;
+
+    setIsDetailDialogOpen(true);
+    setLoadingDetail(true);
+
+    try {
+      const bookingId = parseInt(result.orderId);
+      const booking = await bookingAPI.getBookingById(bookingId);
+      setBookingDetail(booking);
+
+      // Fetch tour details
+      if (booking.tour_id) {
+        try {
+          const tour = await tourAPI.getTourById(booking.tour_id);
+          setTourDetail(tour);
+        } catch (error) {
+          console.error("Failed to fetch tour:", error);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch booking:", error);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "PENDING":
+        return "Chờ xử lý";
+      case "CANCELLED":
+        return "Đã hủy";
+      default:
+        return status;
+    }
+  };
 
   if (loading) {
     return (
@@ -107,8 +183,8 @@ export default function PaymentResultPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className={result?.success ? "bg-green-600" : "bg-red-600"}>
-          <CardTitle className="text-white text-center text-2xl">
+        <CardHeader>
+          <CardTitle className="text-green-600 text-center text-2xl">
             Kết quả thanh toán
           </CardTitle>
         </CardHeader>
@@ -123,16 +199,13 @@ export default function PaymentResultPage() {
           </div>
 
           <div className="text-center">
-            <h3 className={`text-xl font-bold mb-2 ${
-              result?.success ? "text-green-600" : "text-red-600"
-            }`}>
+            <h3
+              className={`text-xl font-bold mb-2 ${
+                result?.success ? "text-green-600" : "text-red-600"
+              }`}
+            >
               {result?.message}
             </h3>
-            {result?.success && (
-              <p className="text-sm text-gray-600 mt-2">
-                Đang chuyển đến trang đặt tour của bạn...
-              </p>
-            )}
           </div>
 
           {result?.orderId && (
@@ -141,7 +214,7 @@ export default function PaymentResultPage() {
                 <span className="text-gray-600">Mã đơn hàng:</span>
                 <span className="font-semibold">{result.orderId}</span>
               </div>
-              
+
               {result.amount && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Số tiền:</span>
@@ -150,7 +223,7 @@ export default function PaymentResultPage() {
                   </span>
                 </div>
               )}
-              
+
               {result.transactionId && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Mã giao dịch:</span>
@@ -165,8 +238,12 @@ export default function PaymentResultPage() {
           <div className="space-y-3">
             {result?.success ? (
               <>
+                <Button className="w-full" onClick={handleViewDetail}>
+                  Xem chi tiết
+                </Button>
                 <Button
-                  className="w-full"
+                  className="w-full hidden"
+                  variant="outline"
                   onClick={() => navigate("/my-bookings")}
                 >
                   Xem đơn đặt tour của tôi
@@ -181,10 +258,7 @@ export default function PaymentResultPage() {
               </>
             ) : (
               <>
-                <Button
-                  className="w-full"
-                  onClick={() => navigate(-2)}
-                >
+                <Button className="w-full" onClick={() => navigate(-2)}>
                   Thử lại
                 </Button>
                 <Button
@@ -199,6 +273,111 @@ export default function PaymentResultPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Booking Detail Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Chi tiết đặt tour</DialogTitle>
+          </DialogHeader>
+
+          {loadingDetail ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            </div>
+          ) : bookingDetail ? (
+            <div className="space-y-4">
+              {/* Booking Info */}
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                <h3 className="font-semibold text-lg mb-3">
+                  Thông tin đặt tour
+                </h3>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">Mã đơn hàng:</span>
+                    <p className="font-semibold">#{bookingDetail.id}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-600">Trạng thái:</span>
+                    <p className="font-semibold">
+                      {getStatusText(bookingDetail.status)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-600">Ngày đặt:</span>
+                    <p className="font-semibold">
+                      {formatDate(bookingDetail.booking_date)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-600">Số người:</span>
+                    <p className="font-semibold">
+                      {bookingDetail.number_of_people} người
+                    </p>
+                  </div>
+
+                  <div className="col-span-2">
+                    <span className="text-gray-600">Tổng tiền:</span>
+                    <p className="font-semibold text-lg text-primary">
+                      {formatPrice(bookingDetail.total_price)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tour Info */}
+              {tourDetail && (
+                <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h3 className="font-semibold text-lg mb-3">Thông tin tour</h3>
+
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-600">Tên tour:</span>
+                      <p className="font-semibold">{tourDetail.title}</p>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-600">Địa điểm:</span>
+                      <p className="font-semibold">{tourDetail.location}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-gray-600">Thời gian:</span>
+                        <p className="font-semibold">
+                          {tourDetail.duration} ngày
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-gray-600">Số người tối đa:</span>
+                        <p className="font-semibold">
+                          {tourDetail.max_participants} người
+                        </p>
+                      </div>
+                    </div>
+
+                    {tourDetail.description && (
+                      <div>
+                        <span className="text-gray-600">Mô tả:</span>
+                        <p className="mt-1">{tourDetail.description}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              Không tìm thấy thông tin đặt tour
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

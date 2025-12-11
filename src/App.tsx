@@ -15,6 +15,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useEffect } from "react";
 import { BookingForm } from "./pages/BookingForm";
 import PaymentPage from "./pages/PaymentPage";
+import PaymentResultPage from "./pages/PaymentResultPage";
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -50,6 +51,7 @@ function App() {
                 <Route path="/promotions" element={<Promotions />} />
                 <Route path="/booking/:id" element={<BookingForm />} />
                 <Route path="/payments" element={<PaymentPage />} />
+                <Route path="/payment/result" element={<PaymentResultPage />} />
               </Routes>
             </Layout>
           }
