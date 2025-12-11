@@ -126,7 +126,7 @@ export function Contact() {
           <CarouselContent>
             {banners.map((banner, index) => (
               <CarouselItem key={index}>
-                <div className="relative w-full overflow-hidden group">
+                <div className="relative w-full aspect-[16/5] overflow-hidden group">
                   <img
                     src={banner}
                     alt={`Banner ${index + 1}`}

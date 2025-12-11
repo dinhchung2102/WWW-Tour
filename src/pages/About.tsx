@@ -123,13 +123,13 @@ Chúng tôi đồng hành cùng bạn khám phá những điểm đến nổi b�
           <CarouselContent>
             {banners.map((banner, index) => (
               <CarouselItem key={index}>
-                <div className="relative w-full overflow-hidden group">
+                <div className="relative w-full aspect-[16/5] overflow-hidden group">
                   <img
                     src={banner}
                     alt={`Banner ${index + 1}`}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
-                  <div className="absolute inset-0  from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
               </CarouselItem>
             ))}
