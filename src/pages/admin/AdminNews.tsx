@@ -39,7 +39,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { newsAPI, newsCategoryAPI } from "@/lib/api";
 import { showErrorToast, showSuccessToast } from "@/lib/error-handler";
 import type { News, NewsDTO, NewsCategory, PageResponse } from "@/types";
-import { Plus, Edit, Trash2, Eye, Calendar, User, Search, ChevronLeft, ChevronRight, X, Upload, XCircle } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  User,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Upload,
+  XCircle,
+} from "lucide-react";
 
 export function AdminNews() {
   const [newsData, setNewsData] = useState<PageResponse<News> | null>(null);
@@ -64,11 +77,15 @@ export function AdminNews() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   // Search and filter states
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
-  const [activeFilter, setActiveFilter] = useState<boolean | undefined>(undefined);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<
+    number | undefined
+  >(undefined);
+  const [activeFilter, setActiveFilter] = useState<boolean | undefined>(
+    undefined
+  );
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
 
@@ -189,18 +206,24 @@ export function AdminNews() {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        showErrorToast(new Error("Vui lòng chọn file ảnh"), "File không hợp lệ");
+        showErrorToast(
+          new Error("Vui lòng chọn file ảnh"),
+          "File không hợp lệ"
+        );
         return;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        showErrorToast(new Error("Kích thước file không được vượt quá 5MB"), "File quá lớn");
+        showErrorToast(
+          new Error("Kích thước file không được vượt quá 5MB"),
+          "File quá lớn"
+        );
         return;
       }
 
       setSelectedFile(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -242,7 +265,7 @@ export function AdminNews() {
       if (selectedNews) {
         // Update news
         let imageUrl = formData.image;
-        
+
         // If new file is selected, upload it first
         if (selectedFile) {
           setIsUploading(true);
@@ -253,7 +276,7 @@ export function AdminNews() {
         await newsAPI.updateNews({
           ...selectedNews,
           ...formData,
-          image: imageUrl,
+          image: imageUrl || "",
         });
         showSuccessToast("Cập nhật tin tức thành công");
       } else {
@@ -338,7 +361,9 @@ export function AdminNews() {
             <Select
               value={selectedCategoryId?.toString() || "all"}
               onValueChange={(value) => {
-                setSelectedCategoryId(value === "all" ? undefined : Number(value));
+                setSelectedCategoryId(
+                  value === "all" ? undefined : Number(value)
+                );
               }}
             >
               <SelectTrigger className="w-[180px]">
@@ -354,7 +379,9 @@ export function AdminNews() {
               </SelectContent>
             </Select>
             <Select
-              value={activeFilter === undefined ? "all" : activeFilter.toString()}
+              value={
+                activeFilter === undefined ? "all" : activeFilter.toString()
+              }
               onValueChange={(value) => {
                 setActiveFilter(value === "all" ? undefined : value === "true");
               }}
@@ -412,82 +439,82 @@ export function AdminNews() {
                 </TableHeader>
                 <TableBody>
                   {newsData.content.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => {
-                      setSelectedNews(item);
-                      setIsDetailDialogOpen(true);
-                    }}
-                  >
-                    <TableCell
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-[80px]"
+                    <TableRow
+                      key={item.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => {
+                        setSelectedNews(item);
+                        setIsDetailDialogOpen(true);
+                      }}
                     >
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground">
-                            No image
-                          </span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="w-[300px]">
-                      <div className="font-medium line-clamp-1 max-w-[280px]">
-                        {item.title}
-                      </div>
-                      <div className="text-sm text-muted-foreground line-clamp-2 max-w-[280px]">
-                        {item.summary}
-                      </div>
-                    </TableCell>
-                    <TableCell className="w-[120px]">
-                      {item.categoryName || "N/A"}
-                    </TableCell>
-                    <TableCell className="w-[120px]">{item.author}</TableCell>
-                    <TableCell className="w-[80px]">{item.views}</TableCell>
-                    <TableCell className="w-[120px]">
-                      <div className="flex flex-col gap-1">
-                        {item.active ? (
-                          <Badge className="bg-green-500">Hoạt động</Badge>
+                      <TableCell
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-[80px]"
+                      >
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-16 h-16 object-cover rounded"
+                          />
                         ) : (
-                          <Badge variant="destructive">Không hoạt động</Badge>
+                          <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
+                            <span className="text-xs text-muted-foreground">
+                              No image
+                            </span>
+                          </div>
                         )}
-                        {item.featured && (
-                          <Badge className="bg-primary">Nổi bật</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell
-                      className="text-right w-[120px]"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenDialog(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedNews(item);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell className="w-[300px]">
+                        <div className="font-medium line-clamp-1 max-w-[280px]">
+                          {item.title}
+                        </div>
+                        <div className="text-sm text-muted-foreground line-clamp-2 max-w-[280px]">
+                          {item.summary}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[120px]">
+                        {item.categoryName || "N/A"}
+                      </TableCell>
+                      <TableCell className="w-[120px]">{item.author}</TableCell>
+                      <TableCell className="w-[80px]">{item.views}</TableCell>
+                      <TableCell className="w-[120px]">
+                        <div className="flex flex-col gap-1">
+                          {item.active ? (
+                            <Badge className="bg-green-500">Hoạt động</Badge>
+                          ) : (
+                            <Badge variant="destructive">Không hoạt động</Badge>
+                          )}
+                          {item.featured && (
+                            <Badge className="bg-primary">Nổi bật</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell
+                        className="text-right w-[120px]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenDialog(item)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedNews(item);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -496,8 +523,10 @@ export function AdminNews() {
               {newsData && newsData.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
                   <div className="text-sm text-muted-foreground">
-                    Hiển thị {newsData.content.length} / {newsData.totalElements} tin tức
-                    {newsData.totalPages > 1 && ` - Trang ${newsData.page + 1} / ${newsData.totalPages}`}
+                    Hiển thị {newsData.content.length} /{" "}
+                    {newsData.totalElements} tin tức
+                    {newsData.totalPages > 1 &&
+                      ` - Trang ${newsData.page + 1} / ${newsData.totalPages}`}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -509,32 +538,39 @@ export function AdminNews() {
                       <ChevronLeft className="h-4 w-4" />
                       Trước
                     </Button>
-                    
+
                     <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, newsData.totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (newsData.totalPages <= 5) {
-                          pageNum = i;
-                        } else if (newsData.page < 3) {
-                          pageNum = i;
-                        } else if (newsData.page > newsData.totalPages - 4) {
-                          pageNum = newsData.totalPages - 5 + i;
-                        } else {
-                          pageNum = newsData.page - 2 + i;
+                      {Array.from(
+                        { length: Math.min(5, newsData.totalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (newsData.totalPages <= 5) {
+                            pageNum = i;
+                          } else if (newsData.page < 3) {
+                            pageNum = i;
+                          } else if (newsData.page > newsData.totalPages - 4) {
+                            pageNum = newsData.totalPages - 5 + i;
+                          } else {
+                            pageNum = newsData.page - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                newsData.page === pageNum
+                                  ? "default"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => loadPage(pageNum)}
+                              disabled={loading}
+                            >
+                              {pageNum + 1}
+                            </Button>
+                          );
                         }
-                        
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={newsData.page === pageNum ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => loadPage(pageNum)}
-                            disabled={loading}
-                          >
-                            {pageNum + 1}
-                          </Button>
-                        );
-                      })}
+                      )}
                     </div>
 
                     <Button
@@ -751,10 +787,10 @@ export function AdminNews() {
                 {isUploading
                   ? "Đang upload ảnh..."
                   : isSubmitting
-                    ? "Đang lưu..."
-                    : selectedNews
-                      ? "Cập nhật"
-                      : "Tạo mới"}
+                  ? "Đang lưu..."
+                  : selectedNews
+                  ? "Cập nhật"
+                  : "Tạo mới"}
               </Button>
             </div>
           </form>
@@ -867,7 +903,10 @@ export function AdminNews() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
@@ -885,4 +924,3 @@ export function AdminNews() {
     </div>
   );
 }
-
