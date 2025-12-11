@@ -7,10 +7,14 @@ import { Label } from "@/components/ui/label";
 import { tourAPI, bookingAPI } from "@/lib/api";
 import type { Tour } from "@/types";
 import { MapPin, Calendar, Users, ArrowLeft, Loader2 } from "lucide-react";
+import { useAuthStore, useLoginModalStore } from "@/store/authStore";
+import { calculateDiscountedPrice, formatPrice } from "@/lib/utils";
 
 export function BookingForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthStore();
+  const { setOpen: setLoginOpen, setRedirectAfterLogin } = useLoginModalStore();
 
   const [tour, setTour] = useState<Tour | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,14 +29,11 @@ export function BookingForm() {
     booking_date: todayYMD,
   });
 
-  // --- Format Price ---
-  const formatPrice = (price?: number) => {
-    if (!price || isNaN(price)) return "Không có giá";
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
+  // Calculate final price per person with promotion
+  const finalPricePerPerson = tour
+    ? calculateDiscountedPrice(tour.price, tour.promotion)
+    : 0;
+  const hasPromotion = tour?.promotion && finalPricePerPerson < tour.price;
 
   // --- Safe Date Formatting ---
   const formatDate = (dateString?: string | null) => {
@@ -49,15 +50,29 @@ export function BookingForm() {
   // --- Fetch Tour ---
   useEffect(() => {
     const fetchTour = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        setError("ID tour không hợp lệ");
+        return;
+      }
+
+      // Validate id is a valid number
+      const tourId = Number(id);
+      if (isNaN(tourId) || tourId <= 0) {
+        setLoading(false);
+        setError("ID tour không hợp lệ");
+        return;
+      }
 
       try {
-        const data = await tourAPI.getTourById(Number(id));
+        const data = await tourAPI.getTourById(tourId);
         console.log("✅ Tour loaded:", data);
         setTour(data);
+        setError(""); // Clear any previous errors
       } catch (error) {
         console.error("❌ Failed to fetch tour:", error);
         setError("Không thể tải thông tin tour");
+        setTour(null);
       } finally {
         setLoading(false);
       }
@@ -78,10 +93,10 @@ export function BookingForm() {
     }));
   };
 
-  // --- Calculate Total Price ---
+  // --- Calculate Total Price (with promotion) ---
   const calculateTotal = () => {
-    if (!tour?.price) return 0;
-    return tour.price * formData.number_of_people;
+    if (!finalPricePerPerson) return 0;
+    return finalPricePerPerson * formData.number_of_people;
   };
 
   // --- Handle Submit ---
@@ -93,21 +108,19 @@ export function BookingForm() {
     console.log("🚀 SUBMIT BOOKING");
 
     try {
-      // Get user from localStorage
-      const userStr = localStorage.getItem("user");
-      console.log("📦 LocalStorage user:", userStr);
-
-      if (!userStr) {
-        console.warn("⚠️ User not logged in → redirect to login");
-        navigate("/login", { state: { from: `/booking/${id}` } });
+      // Check if user is authenticated
+      if (!isAuthenticated || !user) {
+        console.warn("⚠️ User not logged in → open login modal");
+        setRedirectAfterLogin(`/booking/${id}`);
+        setLoginOpen(true);
+        setSubmitting(false);
         return;
       }
 
-      const user = JSON.parse(userStr);
-      console.log("👤 Parsed user:", user);
+      console.log("👤 User from authStore:", user);
 
-      // Check for user ID (support both 'id' and '_id')
-      let userId = user.id || user._id;
+      // Get user ID from authStore user object
+      let userId = user.id;
       console.log("🆔 Raw User ID:", userId);
 
       if (!userId) {
@@ -118,20 +131,12 @@ export function BookingForm() {
         return;
       }
 
-      // Convert MongoDB ObjectId string to integer
-      // If userId is a string (MongoDB ObjectId), create a hash
-      if (typeof userId === "string" && userId.length > 10) {
-        // Simple hash function to convert string to integer
-        let hash = 0;
-        for (let i = 0; i < userId.length; i++) {
-          const char = userId.charCodeAt(i);
-          hash = (hash << 5) - hash + char;
-          hash = hash & hash; // Convert to 32bit integer
-        }
-        userId = Math.abs(hash);
-        console.log("⚠️ Converted MongoDB ObjectId to integer:", userId);
-      } else {
-        userId = Number(userId);
+      // Convert userId to number if needed
+      userId = Number(userId);
+      if (isNaN(userId) || userId <= 0) {
+        setError("ID người dùng không hợp lệ. Vui lòng đăng nhập lại.");
+        setSubmitting(false);
+        return;
       }
 
       // Validate booking_date
@@ -185,21 +190,31 @@ export function BookingForm() {
           description: `Thanh toán tour ${tour?.title}`,
         },
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Booking error:", err);
-      console.error("🔍 Error response:", err.response?.data);
-      console.error("🔍 Error status:", err.response?.status);
 
       // Extract error message from backend
       let errorMessage = "Có lỗi xảy ra khi đặt tour. Vui lòng thử lại.";
 
-      if (err.response?.data) {
-        if (typeof err.response.data === "string") {
-          errorMessage = err.response.data;
-        } else if (err.response.data.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response.data.error) {
-          errorMessage = err.response.data.error;
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosError = err as {
+          response?: { data?: unknown; status?: number };
+        };
+        console.error("🔍 Error response:", axiosError.response?.data);
+        console.error("🔍 Error status:", axiosError.response?.status);
+
+        if (axiosError.response?.data) {
+          const errorData = axiosError.response.data;
+          if (typeof errorData === "string") {
+            errorMessage = errorData;
+          } else if (
+            typeof errorData === "object" &&
+            errorData !== null &&
+            ("message" in errorData || "error" in errorData)
+          ) {
+            const errorObj = errorData as { message?: string; error?: string };
+            errorMessage = errorObj.message || errorObj.error || errorMessage;
+          }
         }
       }
 
@@ -293,10 +308,24 @@ export function BookingForm() {
                   <span className="text-sm text-muted-foreground">
                     Giá mỗi người:
                   </span>
-                  <span className="font-semibold">
-                    {formatPrice(tour.price)}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="font-semibold">
+                      {formatPrice(finalPricePerPerson)}
+                    </span>
+                    {hasPromotion && (
+                      <span className="text-xs line-through text-muted-foreground">
+                        {formatPrice(tour.price)}
+                      </span>
+                    )}
+                  </div>
                 </div>
+                {hasPromotion && tour.promotion && (
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Đang áp dụng khuyến mãi: {tour.promotion.code}
+                    {tour.promotion.discountPercent &&
+                      ` (-${tour.promotion.discountPercent}%)`}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -368,7 +397,16 @@ export function BookingForm() {
                     <span className="text-sm text-muted-foreground">
                       Giá mỗi người:
                     </span>
-                    <span className="text-sm">{formatPrice(tour.price)}</span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-semibold">
+                        {formatPrice(finalPricePerPerson)}
+                      </span>
+                      {hasPromotion && (
+                        <span className="text-xs line-through text-muted-foreground">
+                          {formatPrice(tour.price)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex justify-between items-center">

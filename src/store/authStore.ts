@@ -13,6 +13,21 @@ interface AuthState {
   initialize: () => void;
 }
 
+// Store to manage login modal state globally
+interface LoginModalState {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  redirectAfterLogin?: string;
+  setRedirectAfterLogin: (path?: string) => void;
+}
+
+export const useLoginModalStore = create<LoginModalState>((set) => ({
+  open: false,
+  setOpen: (open) => set({ open }),
+  redirectAfterLogin: undefined,
+  setRedirectAfterLogin: (path) => set({ redirectAfterLogin: path }),
+}));
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   accessToken: null,
@@ -29,19 +44,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   login: async (email: string, password: string) => {
-    try {
-      const response = await authAPI.login({ email, password });
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      set({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        isAuthenticated: true,
-      });
-      await get().fetchProfile();
-    } catch (error) {
-      throw error;
-    }
+    const response = await authAPI.login({ email, password });
+    localStorage.setItem("accessToken", response.accessToken);
+    localStorage.setItem("refreshToken", response.refreshToken);
+    set({
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      isAuthenticated: true,
+    });
+    await get().fetchProfile();
   },
 
   logout: () => {
@@ -65,7 +76,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const user = await authAPI.getProfile();
       set({ user, isAuthenticated: true });
-    } catch (error) {
+    } catch {
       set({
         user: null,
         isAuthenticated: false,

@@ -25,7 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore, useLoginModalStore } from "@/store/authStore";
 import { authAPI } from "@/lib/api";
 import {
   showErrorToast,
@@ -37,7 +37,7 @@ import { LogOut, Settings } from "lucide-react";
 export function AppBar() {
   const navigate = useNavigate();
   const { user, isAuthenticated, login, logout, fetchProfile } = useAuthStore();
-  const [loginOpen, setLoginOpen] = useState(false);
+  const { open: loginOpen, setOpen: setLoginOpen, redirectAfterLogin, setRedirectAfterLogin } = useLoginModalStore();
   const [registerOpen, setRegisterOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,6 +76,15 @@ export function AppBar() {
       setEmail("");
       setPassword("");
       showSuccessToast("Đăng nhập thành công");
+      
+      // Redirect after login if there's a redirect path
+      // Use setTimeout to ensure user state is updated before navigation
+      if (redirectAfterLogin) {
+        setTimeout(() => {
+          navigate(redirectAfterLogin);
+          setRedirectAfterLogin(undefined);
+        }, 100);
+      }
     } catch (err) {
       const message = getErrorMessage(err) || "Đăng nhập thất bại";
       setError(message);
