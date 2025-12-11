@@ -82,6 +82,21 @@ export const authAPI = {
     });
     return response.data;
   },
+
+  updateProfile: async (data: {
+    name: string;
+    phone: string;
+  }): Promise<Customer> => {
+    const response = await api.put("/customer/update", data);
+    return response.data;
+  },
+
+  changePassword: async (data: {
+    oldPassword: string;
+    newPassword: string;
+  }): Promise<void> => {
+    await api.post("/customer/changepassword", data);
+  },
 };
 
 // Tour API

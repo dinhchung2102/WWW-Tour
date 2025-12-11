@@ -32,17 +32,37 @@ import {
   showSuccessToast,
   getErrorMessage,
 } from "@/lib/error-handler";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, User as UserIcon } from "lucide-react";
 
 export function AppBar() {
   const navigate = useNavigate();
   const { user, isAuthenticated, login, logout, fetchProfile } = useAuthStore();
-  const { open: loginOpen, setOpen: setLoginOpen, redirectAfterLogin, setRedirectAfterLogin } = useLoginModalStore();
+  const {
+    open: loginOpen,
+    setOpen: setLoginOpen,
+    redirectAfterLogin,
+    setRedirectAfterLogin,
+  } = useLoginModalStore();
   const [registerOpen, setRegisterOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Profile update dialog state
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    phone: "",
+  });
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [activeTab, setActiveTab] = useState<"info" | "password">("info");
 
   // Register form state
   const [registerData, setRegisterData] = useState({
@@ -63,6 +83,16 @@ export function AppBar() {
     }
   }, [isAuthenticated, user, fetchProfile]);
 
+  // Initialize profile data when user changes
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name,
+        phone: user.phone,
+      });
+    }
+  }, [user]);
+
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) {
       e.preventDefault();
@@ -76,7 +106,7 @@ export function AppBar() {
       setEmail("");
       setPassword("");
       showSuccessToast("Đăng nhập thành công");
-      
+
       // Redirect after login if there's a redirect path
       // Use setTimeout to ensure user state is updated before navigation
       if (redirectAfterLogin) {
@@ -156,6 +186,79 @@ export function AppBar() {
     }
   };
 
+  const handleOpenProfile = () => {
+    if (user) {
+      setProfileData({
+        name: user.name,
+        phone: user.phone,
+      });
+    }
+    setPasswordData({
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setProfileError("");
+    setActiveTab("info");
+    setProfileOpen(true);
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileError("");
+    setProfileLoading(true);
+
+    try {
+      await authAPI.updateProfile(profileData);
+      await fetchProfile();
+      showSuccessToast("Cập nhật thông tin thành công!");
+      setProfileOpen(false);
+    } catch (err) {
+      const message = getErrorMessage(err) || "Cập nhật thông tin thất bại";
+      setProfileError(message);
+      showErrorToast(err, "Cập nhật thông tin thất bại");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileError("");
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setProfileError("Mật khẩu mới không khớp");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setProfileError("Mật khẩu mới phải có ít nhất 6 ký tự");
+      return;
+    }
+
+    setProfileLoading(true);
+
+    try {
+      await authAPI.changePassword({
+        oldPassword: passwordData.oldPassword,
+        newPassword: passwordData.newPassword,
+      });
+      showSuccessToast("Đổi mật khẩu thành công!");
+      setPasswordData({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setProfileOpen(false);
+    } catch (err) {
+      const message = getErrorMessage(err) || "Đổi mật khẩu thất bại";
+      setProfileError(message);
+      showErrorToast(err, "Đổi mật khẩu thất bại");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -208,42 +311,201 @@ export function AppBar() {
 
           <div className="flex items-center gap-4">
             {isAuthenticated && user ? (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <Avatar>
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:inline">{user.name}</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-56" align="end">
-                  <div className="flex flex-col gap-2">
-                    <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                    {user.role === "ADMIN" && (
-                      <Button variant="ghost" className="justify-start" asChild>
-                        <Link to="/admin">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Quản lý
-                        </Link>
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Đăng xuất
+              <>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                      <Avatar>
+                        <AvatarFallback>
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden sm:inline">{user.name}</span>
                     </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56" align="end">
+                    <div className="flex flex-col gap-2">
+                      <div className="px-2 py-1.5">
+                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="justify-start"
+                        onClick={handleOpenProfile}
+                      >
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        Thông tin cá nhân
+                      </Button>
+                      {user.role === "ADMIN" && (
+                        <Button
+                          variant="ghost"
+                          className="justify-start"
+                          asChild
+                        >
+                          <Link to="/admin">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Quản lý
+                          </Link>
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        className="justify-start"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Đăng xuất
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
+                {/* Profile Update Dialog */}
+                <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+                  <DialogContent className="max-w-md">
+                    <DialogTitle>Cập nhật thông tin</DialogTitle>
+                    <DialogDescription className="sr-only">
+                      Cập nhật thông tin cá nhân hoặc đổi mật khẩu
+                    </DialogDescription>
+
+                    <div className="flex gap-2 border-b">
+                      <Button
+                        variant={activeTab === "info" ? "default" : "ghost"}
+                        onClick={() => setActiveTab("info")}
+                        className="flex-1"
+                      >
+                        Thông tin
+                      </Button>
+                      <Button
+                        variant={activeTab === "password" ? "default" : "ghost"}
+                        onClick={() => setActiveTab("password")}
+                        className="flex-1"
+                      >
+                        Đổi mật khẩu
+                      </Button>
+                    </div>
+
+                    {profileError && (
+                      <p className="text-sm text-destructive">{profileError}</p>
+                    )}
+
+                    {activeTab === "info" ? (
+                      <form
+                        onSubmit={handleUpdateProfile}
+                        className="space-y-4"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor="profile-name">Họ và tên</Label>
+                          <Input
+                            id="profile-name"
+                            value={profileData.name}
+                            onChange={(e) =>
+                              setProfileData({
+                                ...profileData,
+                                name: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="profile-phone">Số điện thoại</Label>
+                          <Input
+                            id="profile-phone"
+                            value={profileData.phone}
+                            onChange={(e) =>
+                              setProfileData({
+                                ...profileData,
+                                phone: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Email</Label>
+                          <Input value={user?.email} disabled />
+                          <p className="text-xs text-muted-foreground">
+                            Email không thể thay đổi
+                          </p>
+                        </div>
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={profileLoading}
+                        >
+                          {profileLoading ? "Đang cập nhật..." : "Cập nhật"}
+                        </Button>
+                      </form>
+                    ) : (
+                      <form
+                        onSubmit={handleChangePassword}
+                        className="space-y-4"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor="old-password">Mật khẩu cũ</Label>
+                          <Input
+                            id="old-password"
+                            type="password"
+                            value={passwordData.oldPassword}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                oldPassword: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">Mật khẩu mới</Label>
+                          <Input
+                            id="new-password"
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                newPassword: e.target.value,
+                              })
+                            }
+                            required
+                            minLength={6}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-password">
+                            Xác nhận mật khẩu mới
+                          </Label>
+                          <Input
+                            id="confirm-password"
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                confirmPassword: e.target.value,
+                              })
+                            }
+                            required
+                            minLength={6}
+                          />
+                        </div>
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={profileLoading}
+                        >
+                          {profileLoading ? "Đang đổi..." : "Đổi mật khẩu"}
+                        </Button>
+                      </form>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </>
             ) : (
               <>
                 <Dialog open={loginOpen} onOpenChange={setLoginOpen}>

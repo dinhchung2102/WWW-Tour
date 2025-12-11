@@ -16,6 +16,8 @@ import banner1 from "@/assets/banner/banner1.jpg";
 import banner2 from "@/assets/banner/banner2.png";
 import banner3 from "@/assets/banner/banner3.jpg";
 import banner4 from "@/assets/banner/banner4.jpg";
+import { motion } from "framer-motion";
+import introVideo from "@/assets/videos/Download.mp4";
 
 export function Home() {
   const [tours, setTours] = useState<Tour[]>([]);
@@ -238,6 +240,161 @@ export function Home() {
               </Button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* News Section – Tin tức du lịch */}
+      <section className="py-10 md:py-14 bg-muted/40 animate-in fade-in slide-in-from-bottom-6 duration-700">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 uppercase bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+              Tin tức du lịch mới nhất
+            </h2>
+            <div className="w-24 h-1 bg-primary/70 mx-auto rounded-full" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Top 10 điểm đến hot nhất 2025 bạn không thể bỏ lỡ",
+                img: "/image/BinhDinh.jpg",
+                link: "https://mia.vn/cam-nang-du-lich/dia-diem-du-lich-viet-nam-16165",
+              },
+              {
+                title: "Kinh nghiệm săn vé máy bay giá rẻ đi Châu Á",
+                img: "/image/DaLat_3.jpg",
+                link: "https://www.bestprice.vn/blog/san-ve-may-bay-2/cach-san-ve-may-bay-gia-re_19-1440.html",
+              },
+              {
+                title: "5 tips tránh lừa đảo khi đặt tour online",
+                img: "/image/DaNang.png",
+                link: "https://www.luavietours.com/tin-tuc/cac-thu-doan-lua-dao-khi-dat-tour-du-lich-online/",
+              },
+            ].map((news, index) => (
+              <a
+                key={index}
+                href={news.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-white rounded-xl shadow hover:shadow-xl transition-all duration-300 overflow-hidden group"
+              >
+                <div className="h-48 overflow-hidden">
+                  <img
+                    src={news.img}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg group-hover:text-primary transition-colors duration-300">
+                    {news.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Nhấn để xem chi tiết bài viết…
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 md:py-16 bg-primary/5 animate-in fade-in slide-in-from-bottom-6 duration-700">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 uppercase bg-gradient-to-r from-primary via-primary/70 to-primary bg-clip-text text-transparent">
+            Khám phá thêm
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300">
+              <h3 className="font-bold text-lg mb-3">Video giới thiệu</h3>
+              <div className="aspect-video rounded-lg overflow-hidden shadow">
+                <video
+                  src={introVideo}
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            {/* Ưu đãi & khuyến mãi */}
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 230 }}
+              className="bg-gradient-to-br from-pink-500/10 via-red-500/10 to-orange-500/10 
+              p-6 rounded-2xl shadow-md hover:shadow-xl 
+              backdrop-blur-sm border border-white/30 cursor-pointer
+              relative overflow-hidden group"
+            >
+              {/* Hiệu ứng ánh sáng chạy */}
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-700 
+                  bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                  animate-[shine_2s_linear_infinite] pointer-events-none"
+              />
+
+              <h3 className="font-bold text-xl mb-3 text-red-600 flex items-center gap-2">
+                🔥 Ưu đãi hot
+              </h3>
+
+              <ul className="text-left space-y-2 text-gray-700 font-medium">
+                <li className="flex items-center gap-2">
+                  <span className="text-red-500">✨</span>
+                  Giảm <b>30%</b> tour Thái Lan 5N4Đ – Chỉ tháng này!
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-500">💎</span>
+                  Combo Singapore 4N3Đ tặng vé Universal Studios
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-500">🌈</span>
+                  Tour Đà Lạt 2N1Đ chỉ <b>1.290.000đ</b>
+                </li>
+              </ul>
+            </motion.div>
+
+            {/* Lý do chọn chúng tôi */}
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 230 }}
+              className="bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-teal-500/10
+              p-6 rounded-2xl shadow-md hover:shadow-xl 
+              backdrop-blur-sm border border-white/30 cursor-pointer
+              relative overflow-hidden group"
+            >
+              {/* Hiệu ứng ánh sáng chạy */}
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-700 
+                  bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                  animate-[shine_2s_linear_infinite] pointer-events-none"
+              />
+
+              <h3 className="font-bold text-xl mb-3 text-blue-600 flex items-center gap-2">
+                ⭐ Vì sao chọn chúng tôi?
+              </h3>
+
+              <ul className="text-left space-y-2 text-gray-700 font-medium">
+                <li className="flex items-center gap-2">
+                  <span className="text-blue-500">💼</span>
+                  Hơn <b>10 năm</b> kinh nghiệm
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-blue-500">🌍</span>
+                  100,000+ khách hàng hài lòng
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-blue-500">📞</span>
+                  Chăm sóc khách hàng <b>24/7</b>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-blue-500">💰</span>
+                  Giá cả minh bạch, không phát sinh
+                </li>
+              </ul>
+            </motion.div>
+          </div>
         </div>
       </section>
     </div>
