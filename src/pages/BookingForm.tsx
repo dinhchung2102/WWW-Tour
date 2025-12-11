@@ -180,16 +180,11 @@ export function BookingForm() {
 
       console.log("✅ Booking response:", response);
 
-      alert("Đặt tour thành công! Đang chuyển đến trang thanh toán...");
-      const orderId = response.id;
+      // Show success message and redirect to home
+      alert("Đặt tour thành công!");
 
-      navigate("/payments", {
-        state: {
-          orderId,
-          amount: bookingData.total_price,
-          description: `Thanh toán tour ${tour?.title}`,
-        },
-      });
+      // Navigate to home page
+      navigate("/");
     } catch (err: unknown) {
       console.error("❌ Booking error:", err);
 
