@@ -107,7 +107,11 @@ export function AdminAbout() {
 
       await fetchInfos();
       handleCloseDialog();
-      showSuccessToast(selectedInfo ? "Cập nhật thông tin thành công" : "Tạo thông tin thành công");
+      showSuccessToast(
+        selectedInfo
+          ? "Cập nhật thông tin thành công"
+          : "Tạo thông tin thành công"
+      );
     } catch (error) {
       console.error("Failed to save info:", error);
       showErrorToast(error, "Có lỗi xảy ra khi lưu thông tin");
@@ -168,7 +172,9 @@ export function AdminAbout() {
                   <TableHead className="w-[150px]">Loại</TableHead>
                   <TableHead className="w-[100px]">Thứ tự</TableHead>
                   <TableHead className="w-[150px]">Ngày tạo</TableHead>
-                  <TableHead className="w-[120px] text-right">Hành động</TableHead>
+                  <TableHead className="w-[120px] text-right">
+                    Hành động
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -343,7 +349,10 @@ export function AdminAbout() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa thông tin</AlertDialogTitle>
@@ -368,4 +377,3 @@ export function AdminAbout() {
     </div>
   );
 }
-

@@ -128,7 +128,7 @@ export function Contact() {
                         <div>
                           <p className="font-medium">Email</p>
                           <p className="text-sm text-muted-foreground">
-                            contact@tourdulich.com
+                            ntdinh25@gmail.com
                           </p>
                         </div>
                       </div>
@@ -137,7 +137,7 @@ export function Contact() {
                         <div>
                           <p className="font-medium">Điện thoại</p>
                           <p className="text-sm text-muted-foreground">
-                            1900 1234 5678
+                            0353081256
                           </p>
                         </div>
                       </div>
@@ -146,7 +146,7 @@ export function Contact() {
                         <div>
                           <p className="font-medium">Địa chỉ</p>
                           <p className="text-sm text-muted-foreground">
-                            123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+                            536 Nguyễn Oanh, Quận Gò Vấp, TP. Hồ Chí Minh
                           </p>
                         </div>
                       </div>

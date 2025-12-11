@@ -29,6 +29,9 @@ export interface Customer {
 
 // Tour types
 export interface Tour {
+  name: string;
+  id: number;
+  data: Tour;
   id_tour: number;
   title: string;
   description: string;

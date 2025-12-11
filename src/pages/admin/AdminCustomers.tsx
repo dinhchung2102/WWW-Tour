@@ -21,7 +21,7 @@ export function AdminCustomers() {
         // Note: This endpoint requires ADMIN role
         // Using customerlist endpoint from README
         const response = await fetch(
-          "http://localhost:8080/customer/customerlist",
+          `${import.meta.env.VITE_API_URL}/customer/customerlist`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessToken")}`,

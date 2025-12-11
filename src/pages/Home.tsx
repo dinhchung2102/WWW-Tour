@@ -64,8 +64,8 @@ export function Home() {
   }, [api]);
 
   return (
-    <div>
-      {/* Banner Carousel */}
+    <div className="overflow-hidden">
+      {/* Banner Carousel - Compact Version */}
       <section className="relative">
         <Carousel
           setApi={setApi}
@@ -78,45 +78,64 @@ export function Home() {
           <CarouselContent>
             {banners.map((banner, index) => (
               <CarouselItem key={index}>
-                <div className="relative w-full h-[500px] md:h-[600px]">
+                <div className="relative w-full h-[300px] md:h-[300px] lg:h-[250px] overflow-hidden group">
                   <img
                     src={banner}
                     alt={`Banner ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-4" />
-          <CarouselNext className="right-4" />
+          <CarouselPrevious className="left-2 md:left-4 h-8 w-8 md:h-10 md:w-10 transition-all duration-300 hover:scale-110 hover:bg-primary hover:text-primary-foreground" />
+          <CarouselNext className="right-2 md:right-4 h-8 w-8 md:h-10 md:w-10 transition-all duration-300 hover:scale-110 hover:bg-primary hover:text-primary-foreground" />
         </Carousel>
       </section>
 
-      {/* Featured Tours */}
-      <section className="py-16">
+      {/* Featured Tours - Compact */}
+      <section className="py-8 md:py-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 uppercase">Tours nổi bật</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 uppercase bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent animate-in fade-in slide-in-from-top-4 duration-500">
+              Tours nổi bật
+            </h2>
+            <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto animate-in fade-in zoom-in-50 duration-700 delay-150" />
           </div>
 
           {loading ? (
-            <div className="text-center py-12">Đang tải...</div>
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" />
+            </div>
           ) : tours.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground animate-in fade-in duration-500">
               Chưa có tour nào
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tours.map((tour) => (
-                <TourCard key={tour.id_tour} tour={tour} />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              {tours.map((tour, index) => (
+                <div
+                  key={tour.id_tour}
+                  className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="scale-90 md:scale-95">
+                    <TourCard tour={tour} />
+                  </div>
+                </div>
               ))}
             </div>
           )}
 
           {tours.length > 0 && (
-            <div className="text-center mt-12">
-              <Button asChild variant="outline" size="lg">
+            <div className="text-center mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+              <Button 
+                asChild 
+                variant="outline" 
+                size="default"
+                className="transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-primary hover:text-primary-foreground"
+              >
                 <Link to="/tours">Xem tất cả tours</Link>
               </Button>
             </div>
@@ -124,32 +143,48 @@ export function Home() {
         </div>
       </section>
 
-      {/* Domestic Tours */}
-      <section className="py-16 bg-muted/30">
+      {/* Domestic Tours - Compact */}
+      <section className="py-8 md:py-12 bg-muted/30 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 uppercase">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 uppercase bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent animate-in fade-in slide-in-from-top-4 duration-500">
               Tour trong nước
             </h2>
+            <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto animate-in fade-in zoom-in-50 duration-700 delay-150" />
           </div>
 
           {loading ? (
-            <div className="text-center py-12">Đang tải...</div>
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" />
+            </div>
           ) : domesticTours.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground animate-in fade-in duration-500">
               Chưa có tour trong nước
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {domesticTours.map((tour) => (
-                <TourCard key={tour.id_tour} tour={tour} />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              {domesticTours.map((tour, index) => (
+                <div
+                  key={tour.id_tour}
+                  className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="scale-90 md:scale-95">
+                    <TourCard tour={tour} />
+                  </div>
+                </div>
               ))}
             </div>
           )}
 
           {domesticTours.length > 0 && (
-            <div className="text-center mt-12">
-              <Button asChild variant="outline" size="lg">
+            <div className="text-center mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+              <Button 
+                asChild 
+                variant="outline" 
+                size="default"
+                className="transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-primary hover:text-primary-foreground"
+              >
                 <Link to="/tours">Xem tất cả tour trong nước</Link>
               </Button>
             </div>
@@ -157,32 +192,48 @@ export function Home() {
         </div>
       </section>
 
-      {/* International Tours */}
-      <section className="py-16">
+      {/* International Tours - Compact */}
+      <section className="py-8 md:py-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 uppercase">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 uppercase bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent animate-in fade-in slide-in-from-top-4 duration-500">
               Tour nước ngoài
             </h2>
+            <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto animate-in fade-in zoom-in-50 duration-700 delay-150" />
           </div>
 
           {loading ? (
-            <div className="text-center py-12">Đang tải...</div>
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" />
+            </div>
           ) : internationalTours.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground animate-in fade-in duration-500">
               Chưa có tour nước ngoài
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {internationalTours.map((tour) => (
-                <TourCard key={tour.id_tour} tour={tour} />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              {internationalTours.map((tour, index) => (
+                <div
+                  key={tour.id_tour}
+                  className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="scale-90 md:scale-95">
+                    <TourCard tour={tour} />
+                  </div>
+                </div>
               ))}
             </div>
           )}
 
           {internationalTours.length > 0 && (
-            <div className="text-center mt-12">
-              <Button asChild variant="outline" size="lg">
+            <div className="text-center mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+              <Button 
+                asChild 
+                variant="outline" 
+                size="default"
+                className="transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-primary hover:text-primary-foreground"
+              >
                 <Link to="/tours">Xem tất cả tour nước ngoài</Link>
               </Button>
             </div>

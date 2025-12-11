@@ -10,6 +10,9 @@ import { AdminPage } from "@/pages/admin/AdminPage";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect } from "react";
+import { BookingForm } from "./pages/BookingForm";
+import PaymentPage from "./pages/PaymentPage";
+
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -40,6 +43,8 @@ function App() {
                 <Route path="/tours" element={<Tours />} />
                 <Route path="/tours/:id" element={<TourDetail />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/booking/:id" element={<BookingForm />} />
+                <Route path="/payments" element={<PaymentPage />} />
               </Routes>
             </Layout>
           }
